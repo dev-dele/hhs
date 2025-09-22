@@ -75,7 +75,7 @@
 
     label { display: block; font-weight: 700; margin: 6px 0; }
     .req { color: #dc2626; margin-left: 4px; }
-    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], select, textarea { width: 100%; background: #ffffff; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 12px 12px; outline: none; box-sizing: border-box; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], select, textarea { width: 100%; background: #ffffff; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 12px 12px; outline: none; box-sizing: border-box; font-size: 16px; }
     input:focus, select:focus, textarea:focus { border-color: var(--primary-2); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
     textarea { min-height: 90px; resize: vertical; }
 
@@ -93,7 +93,8 @@
     .overlay-rect { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
     .overlay-rect .rect { width: min(92%, 620px); height: min(62%, 400px); border: 3px dashed #2563eb; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); outline: 2px solid rgba(37,99,235,0.2); }
 
-    .preview { display: grid; place-items: center; gap: 8px; margin-top: 12px; }
+    .preview { display: grid; place-items: center; gap: 8px; margin-top: 12px; width: 100%; }
+    .preview img { max-width: 100%; height: auto; max-height: 360px; object-fit: contain; border-radius: 12px; }
 
     /* Upload fallback */
     .or-divider { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 16px 0; color: var(--muted); }
@@ -107,7 +108,7 @@
 
     /* Responsive */
     @media (max-width: 1024px) { .landing .hero { grid-template-columns: 1fr; padding: 30px 0; } .features { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 860px) { .steps { grid-template-columns: 1fr 1fr; } .grid-2, .grid-3 { grid-template-columns: 1fr; } .nav { flex-wrap: wrap; } .nav-links { width: 100%; justify-content: flex-start; flex-wrap: wrap; } }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr 1fr; } .grid-2, .grid-3 { grid-template-columns: 1fr; } .nav { flex-wrap: nowrap; } .nav-links { width: auto; justify-content: flex-end; margin-left: auto; } }
     @media (max-width: 700px) { .features { grid-template-columns: 1fr; } }
   </style>
   <!-- Firebase SDKs -->
@@ -126,9 +127,6 @@
         </div>
       </a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="#home" id="link-home">Home</a>
-        <a href="#program" id="link-program">Program</a>
-        <a href="status.html" id="link-status">Status</a>
         <a href="#apply" id="link-apply" class="btn primary">Apply now</a>
       </nav>
     </div>
@@ -470,6 +468,8 @@
       document.getElementById('steps-bar').classList.remove('hidden');
       steps.forEach((s, i) => s.classList.toggle('hidden', i !== idx - 1));
       chips.forEach((c, i) => c.classList.toggle('active', i <= idx - 1));
+      const headerApply = document.getElementById('link-apply');
+      if (headerApply) headerApply.classList.add('hidden');
       document.getElementById('apply').scrollIntoView({ behavior: 'smooth' });
       localStorage.setItem('hhsCurrentStep', String(idx));
     }
@@ -478,16 +478,15 @@
       document.querySelector('.landing').classList.remove('hidden');
       document.getElementById('steps-bar').classList.add('hidden');
       steps.forEach(s => s.classList.add('hidden'));
+      const headerApply = document.getElementById('link-apply');
+      if (headerApply) headerApply.classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       localStorage.removeItem('hhsCurrentStep');
     }
 
     // Header navigation bindings
     document.getElementById('nav-home').addEventListener('click', (e) => { e.preventDefault(); showLanding(); });
-    document.getElementById('link-home').addEventListener('click', (e) => { e.preventDefault(); showLanding(); });
-    function gotoProgram() { showStep(3); }
-    document.getElementById('link-program').addEventListener('click', (e) => { e.preventDefault(); gotoProgram(); });
-    document.getElementById('link-apply').addEventListener('click', (e) => { e.preventDefault(); showStep(1); });
+        document.getElementById('link-apply').addEventListener('click', (e) => { e.preventDefault(); showStep(1); });
     document.getElementById('cta-apply').addEventListener('click', (e) => { e.preventDefault(); showStep(1); });
     document.getElementById('cta-learn').addEventListener('click', (e) => { e.preventDefault(); gotoProgram(); });
 
@@ -580,17 +579,15 @@
     async function uploadAndLink(dataUrl) {
       // Store local copy
       localStorage.setItem('hhsIdImage', dataUrl);
-      btnToTerms.disabled = true; btnRetake.disabled = false; btnSnap.disabled = true;
+      btnToTerms.disabled = false; btnRetake.disabled = false; btnSnap.disabled = true;
       renderPreview(dataUrl, 'help', 'Uploading ID image to secure storage…');
       try {
         const result = await uploadToCloudinary(dataUrl);
         localStorage.setItem('hhsCloudinaryUrl', result.secure_url || '');
         localStorage.setItem('hhsCloudinaryPublicId', result.public_id || '');
         renderPreview(dataUrl, 'success', 'ID image uploaded and linked to your application.');
-        btnToTerms.disabled = false;
       } catch (e) {
-        renderPreview(dataUrl, 'error', `Upload failed: ${e.message}. You can retry or pick another image.`);
-        btnToTerms.disabled = true;
+        renderPreview(dataUrl, 'error', `Upload failed: ${e.message}. You can continue and we will upload again on submit.`);
       } finally {
         stopCamera();
       }
