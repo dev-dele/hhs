@@ -30,8 +30,9 @@
     .status-pending { color:#92400e; background:#fffbeb; border-color:#fcd34d; }
     .status-approved { color:#065f46; background:#ecfdf5; border-color:#6ee7b7; }
     .status-rejected { color:#991b1b; background:#fee2e2; border-color:#fecaca; }
-    .kv { display:grid; grid-template-columns: 160px 1fr; gap:8px; margin: 8px 0; }
-    .kv .k { color: var(--muted); }
+    .kv { display:grid; grid-template-columns: minmax(110px, 160px) 1fr; gap:8px; margin: 8px 0; align-items: start; }
+    .kv > div { overflow-wrap: anywhere; word-break: break-word; }
+    .kv .k { color: var(--muted); font-weight: 700; }
     .img-wrap { background: #f8fafc; border:1px solid var(--border); border-radius: 12px; padding: 8px; display:grid; place-items:center; }
     .img-wrap img { max-width: 100%; border-radius: 8px; }
     @media (max-width: 680px) { .kv { grid-template-columns: 1fr; } }

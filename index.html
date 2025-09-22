@@ -488,7 +488,7 @@
     document.getElementById('nav-home').addEventListener('click', (e) => { e.preventDefault(); showLanding(); });
         document.getElementById('link-apply').addEventListener('click', (e) => { e.preventDefault(); showStep(1); });
     document.getElementById('cta-apply').addEventListener('click', (e) => { e.preventDefault(); showStep(1); });
-    document.getElementById('cta-learn').addEventListener('click', (e) => { e.preventDefault(); gotoProgram(); });
+    document.getElementById('cta-learn').addEventListener('click', (e) => { e.preventDefault(); showStep(3); });
 
     // Persist and restore
     const form = document.getElementById('application-form');
@@ -619,8 +619,8 @@
 
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
     dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('drag'); const file = e.dataTransfer.files && e.dataTransfer.files[0]; processImageFile(file); });
-    fileInput.addEventListener('change', () => { const f = fileInput.files && fileInput.files[0]; processImageFile(f); });
+    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('drag'); const file = e.dataTransfer.files && e.dataTransfer.files[0]; if (file) { btnToTerms.disabled = false; } processImageFile(file); });
+    fileInput.addEventListener('change', () => { const f = fileInput.files && fileInput.files[0]; if (f) { btnToTerms.disabled = false; } processImageFile(f); });
 
     // Terms acknowledgements
     const ackOverview = document.getElementById('ackOverview');
@@ -631,6 +631,7 @@
     [ackOverview, ackTerms, ackEmail].forEach(cb => cb.addEventListener('change', updateSubmitEnabled));
 
     document.getElementById('btn-back-2').addEventListener('click', () => showStep(2));
+    btnToTerms.addEventListener('click', () => { if (!localStorage.getItem('hhsIdImage')) { alert('Please capture or upload your ID image before continuing.'); return; } showStep(3); });
 
     function generateRef() { const ts = Date.now().toString(36).toUpperCase(); const rnd = Math.random().toString(36).slice(2, 7).toUpperCase(); return `HHS-${ts}-${rnd}`; }
 

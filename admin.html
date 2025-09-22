@@ -29,7 +29,7 @@
     .panel { background:var(--panel); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); }
 
     table { width:100%; border-collapse: collapse; }
-    thead th { text-align:left; font-size:0.9rem; color: var(--muted); padding: 10px; border-bottom:1px solid var(--border); background: var(--surface); position: sticky; top: 78px; z-index: 10; }
+    thead th { text-align:left; font-size:0.9rem; color: var(--muted); padding: 10px; border-bottom:1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 10; }
     tbody td { padding: 12px 10px; border-bottom:1px solid var(--border); vertical-align: top; }
     tbody tr:hover { background: #f9fafb; }
 
@@ -38,19 +38,20 @@
     .status.approved { color:#065f46; background:#ecfdf5; border-color:#6ee7b7; }
     .status.rejected { color:#991b1b; background:#fee2e2; border-color:#fecaca; }
 
-    .table-wrap { overflow:auto; border-radius: 16px; }
+    .table-wrap { overflow:auto; border-radius: 16px; max-height: 70vh; }
 
     .footer-actions { display:flex; gap:10px; justify-content: flex-end; padding: 12px; }
 
     /* Modal */
-    .modal { position: fixed; inset: 0; display:none; align-items: center; justify-content: center; background: rgba(2,6,23,0.45); padding: 16px; }
+    .modal { position: fixed; inset: 0; display:none; align-items: center; justify-content: center; background: rgba(2,6,23,0.45); padding: 16px; z-index: 1000; }
     .modal.show { display:flex; }
     .modal .dialog { width: min(980px, 95vw); max-height: 90vh; overflow: auto; background: #fff; border-radius: 16px; box-shadow: var(--shadow); border:1px solid var(--border); }
     .dialog header { display:flex; justify-content: space-between; align-items:center; padding: 14px 16px; border-bottom:1px solid var(--border); position: sticky; top: 0; background:#fff; z-index: 2; }
     .dialog .content { padding: 16px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
     .dialog h3 { margin:0; }
-    .kv { display:grid; grid-template-columns: 180px 1fr; gap:8px; margin-bottom: 6px; }
-    .kv .k { color: var(--muted); }
+    .kv { display:grid; grid-template-columns: minmax(110px, 180px) 1fr; gap:8px; margin-bottom: 6px; align-items: start; }
+    .kv > div { overflow-wrap: anywhere; word-break: break-word; }
+    .kv .k { color: var(--muted); font-weight: 700; }
     .img-wrap { background: #f8fafc; border:1px solid var(--border); border-radius: 12px; padding: 8px; display:grid; place-items:center; }
     .img-wrap img { max-width: 100%; border-radius: 8px; }
 
@@ -70,10 +71,7 @@
           <div class="sub">Admin Console</div>
         </div>
       </a>
-      <div class="group">
-        <a href="index.html" class="btn ghost">Back to portal</a>
-      </div>
-    </div>
+          </div>
   </header>
 
   <main class="container" style="padding: 18px 0 28px;">
