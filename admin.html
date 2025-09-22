@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HHS Admin Console — Applications</title>
+  <meta name="description" content="Human Health Service Admin Console for reviewing grant applications." />
+  <link rel="icon" href="logo.png" type="image/png" />
+  <style>
+    :root { --bg:#ffffff; --surface:#f8fafc; --panel:#ffffff; --border:#e5e7eb; --text:#0f172a; --muted:#475569; --primary:#1d4ed8; --primary-2:#2563eb; --success:#059669; --danger:#dc2626; --warning:#d97706; --shadow:0 10px 30px rgba(2,6,23,0.08); }
+    html, body { margin:0; padding:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--text); background:var(--bg); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    header.site-header { position: sticky; top:0; z-index: 50; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-bottom:1px solid var(--border); }
+    .nav { display:flex; align-items:center; justify-content:space-between; padding: 14px 0; gap: 16px; }
+    .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
+    .brand img { width:40px; height:40px; object-fit:contain; }
+    .brand .name { font-weight: 800; }
+    .brand .sub { color: var(--muted); font-size: 0.9rem; }
+
+    .toolbar { display:flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 16px 0; }
+    .toolbar .group { display:flex; gap:8px; align-items:center; }
+    input[type="text"], select { background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+    .btn { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; }
+    .btn.primary { background: linear-gradient(180deg,var(--primary),var(--primary-2)); color:#fff; box-shadow:var(--shadow); }
+    .btn.ghost { background:#fff; color:var(--primary-2); border:1px solid var(--border); }
+    .btn.warn { background:#fff; color:#b45309; border:1px solid #f59e0b; }
+    .btn:disabled { opacity:.6; cursor:not-allowed; }
+
+    .panel { background:var(--panel); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); }
+
+    table { width:100%; border-collapse: collapse; }
+    thead th { text-align:left; font-size:0.9rem; color: var(--muted); padding: 10px; border-bottom:1px solid var(--border); background: var(--surface); position: sticky; top: 78px; z-index: 10; }
+    tbody td { padding: 12px 10px; border-bottom:1px solid var(--border); vertical-align: top; }
+    tbody tr:hover { background: #f9fafb; }
+
+    .status { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-weight:700; font-size:0.85rem; border:1px solid var(--border); }
+    .status.pending { color:#92400e; background:#fffbeb; border-color:#fcd34d; }
+    .status.approved { color:#065f46; background:#ecfdf5; border-color:#6ee7b7; }
+    .status.rejected { color:#991b1b; background:#fee2e2; border-color:#fecaca; }
+
+    .table-wrap { overflow:auto; border-radius: 16px; }
+
+    .footer-actions { display:flex; gap:10px; justify-content: flex-end; padding: 12px; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; display:none; align-items: center; justify-content: center; background: rgba(2,6,23,0.45); padding: 16px; }
+    .modal.show { display:flex; }
+    .modal .dialog { width: min(980px, 95vw); max-height: 90vh; overflow: auto; background: #fff; border-radius: 16px; box-shadow: var(--shadow); border:1px solid var(--border); }
+    .dialog header { display:flex; justify-content: space-between; align-items:center; padding: 14px 16px; border-bottom:1px solid var(--border); position: sticky; top: 0; background:#fff; z-index: 2; }
+    .dialog .content { padding: 16px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
+    .dialog h3 { margin:0; }
+    .kv { display:grid; grid-template-columns: 180px 1fr; gap:8px; margin-bottom: 6px; }
+    .kv .k { color: var(--muted); }
+    .img-wrap { background: #f8fafc; border:1px solid var(--border); border-radius: 12px; padding: 8px; display:grid; place-items:center; }
+    .img-wrap img { max-width: 100%; border-radius: 8px; }
+
+    @media (max-width: 900px) { .dialog .content { grid-template-columns: 1fr; } .kv { grid-template-columns: 1fr; } }
+  </style>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="HHS" />
+        <div>
+          <div class="name">Human Health Service</div>
+          <div class="sub">Admin Console</div>
+        </div>
+      </a>
+      <div class="group">
+        <a href="index.html" class="btn ghost">Back to portal</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 18px 0 28px;">
+    <section class="panel" style="padding: 14px;">
+      <div class="toolbar">
+        <div class="group" style="flex:1 1 280px; min-width: 220px;">
+          <input id="search" type="text" placeholder="Search name, email, phone or reference" style="width:100%" />
+        </div>
+        <div class="group">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="group">
+          <button id="refresh" class="btn ghost">Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="appsTable">
+          <thead>
+            <tr>
+              <th style="min-width:130px;">Reference</th>
+              <th style="min-width:200px;">Applicant</th>
+              <th style="min-width:160px;">Contact</th>
+              <th style="min-width:140px;">Created</th>
+              <th style="min-width:120px;">Status</th>
+              <th style="min-width:120px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="appsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="footer-actions">
+        <button id="loadMore" class="btn primary" disabled>Load more</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="dialog">
+      <header>
+        <h3 id="m-title">Application</h3>
+        <div class="group">
+          <button id="m-close" class="btn ghost">Close</button>
+        </div>
+      </header>
+      <div class="content">
+        <div>
+          <div class="kv"><div class="k">Reference</div><div id="m-ref">-</div></div>
+          <div class="kv"><div class="k">Status</div><div id="m-status">-</div></div>
+          <div class="kv"><div class="k">Created</div><div id="m-created">-</div></div>
+          <hr style="border:0; border-top:1px solid var(--border); margin: 10px 0;" />
+          <h4>Applicant</h4>
+          <div id="m-applicant"></div>
+                    <div class="group" style="gap:8px; flex-wrap:wrap;">
+            <button class="btn ghost" id="m-copy-email">Copy email</button>
+          </div>
+        </div>
+        <div>
+          <div class="img-wrap">
+            <img id="m-img" alt="ID image" />
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+            <a id="m-img-link" href="#" target="_blank" class="btn ghost">Open image</a>
+            <button class="btn primary" id="m-approve">Mark Approved</button>
+            <button class="btn warn" id="m-pending">Mark Pending</button>
+            <button class="btn ghost" id="m-reject" style="border-color:#fecaca; color:#991b1b;">Mark Rejected</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdKDjmlXH8tFtF4rCvIzx11s4MgFSdFq0",
+      authDomain: "kfdn-8bdeb.firebaseapp.com",
+      projectId: "kfdn-8bdeb",
+      storageBucket: "kfdn-8bdeb.firebasestorage.app",
+      messagingSenderId: "122949220202",
+      appId: "1:122949220202:web:ba7b16a5d63599452f5713",
+      measurementId: "G-5BFYZ4DY0K"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // UI state
+    const appsBody = document.getElementById('appsBody');
+    const searchEl = document.getElementById('search');
+    const statusEl = document.getElementById('status');
+    const refreshBtn = document.getElementById('refresh');
+        const loadMoreBtn = document.getElementById('loadMore');
+
+    let loadedDocs = []; // {id, ref, data}
+    let lastDoc = null;
+    const pageSize = 25;
+
+    function fmtDate(ts) {
+      if (!ts) return '-';
+      try {
+        if (ts.toDate) return ts.toDate().toLocaleString();
+        return new Date(ts).toLocaleString();
+      } catch { return '-'; }
+    }
+
+    function statusBadge(status) {
+      const s = (status || 'pending').toLowerCase();
+      const cls = s === 'approved' ? 'approved' : s === 'rejected' ? 'rejected' : 'pending';
+      return `<span class="status ${cls}">${s}</span>`;
+    }
+
+    function rowHTML(doc) {
+      const d = doc.data;
+      const a = d.applicant || {};
+      const name = a.fullName || '-';
+      const contact = [a.email, a.phone].filter(Boolean).join('<br/>');
+      const created = fmtDate(d.createdAt);
+      return `<tr data-id="${doc.id}">
+        <td>${d.reference || '-'}</td>
+        <td>${name}</td>
+        <td>${contact || '-'}</td>
+        <td>${created}</td>
+        <td>${statusBadge(d.status)}</td>
+        <td><button class="btn ghost btn-view" data-id="${doc.id}">View</button></td>
+      </tr>`;
+    }
+
+    function applySearchFilter(items) {
+      const q = (searchEl.value || '').toLowerCase().trim();
+      const st = (statusEl.value || '').toLowerCase();
+      return items.filter(({data}) => {
+        const d = data; const a = d.applicant || {};
+        const hay = [d.reference, a.fullName, a.email, a.phone].map(x => (x || '').toString().toLowerCase()).join(' ');
+        const matchesQ = !q || hay.includes(q);
+        const matchesS = !st || (d.status || 'pending').toLowerCase() === st;
+        return matchesQ && matchesS;
+      });
+    }
+
+    function renderTable() {
+      const view = applySearchFilter(loadedDocs);
+      if (!view.length) {
+        appsBody.innerHTML = `<tr><td colspan="6" style="padding:16px; color:var(--muted);">No applications found.</td></tr>`;
+        return;
+      }
+      appsBody.innerHTML = view.map(rowHTML).join('');
+    }
+
+    async function fetchPage(reset=false) {
+      if (reset) { loadedDocs = []; lastDoc = null; appsBody.innerHTML = '<tr><td colspan="6" style="padding:16px; color:var(--muted);">Loading…</td></tr>'; }
+      try {
+        let q = db.collection('applications').orderBy('createdAt', 'desc');
+        const st = statusEl.value;
+        if (st) q = q.where('status', '==', st);
+        if (lastDoc) q = q.startAfter(lastDoc);
+        const snap = await q.limit(pageSize).get();
+        const batch = [];
+        snap.forEach(doc => batch.push({ id: doc.id, ref: doc.ref, data: doc.data() }));
+        loadedDocs = reset ? batch : loadedDocs.concat(batch);
+        lastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+        loadMoreBtn.disabled = !lastDoc;
+        renderTable();
+      } catch (e) {
+        // Likely requires index or another issue; fallback: fetch without status filter
+        console.warn('Query failed, fallback to simple fetch', e);
+        try {
+          let q = db.collection('applications').orderBy('createdAt', 'desc');
+          if (lastDoc) q = q.startAfter(lastDoc);
+          const snap = await q.limit(pageSize).get();
+          const batch = [];
+          snap.forEach(doc => batch.push({ id: doc.id, ref: doc.ref, data: doc.data() }));
+          // Apply status filter client-side
+          const st = statusEl.value;
+          const filtered = st ? batch.filter(b => (b.data.status || 'pending').toLowerCase() === st) : batch;
+          loadedDocs = reset ? filtered : loadedDocs.concat(filtered);
+          lastDoc = snap.docs.length ? snap.docs[snap.docs.length - 1] : null;
+          loadMoreBtn.disabled = !lastDoc;
+          renderTable();
+        } catch (err2) {
+          appsBody.innerHTML = `<tr><td colspan="6" style="padding:16px; color:#991b1b;">Failed to load: ${err2.message}</td></tr>`;
+        }
+      }
+    }
+
+    // Modal helpers
+    const modal = document.getElementById('modal');
+    const mClose = document.getElementById('m-close');
+    const mTitle = document.getElementById('m-title');
+    const mRef = document.getElementById('m-ref');
+    const mStatus = document.getElementById('m-status');
+    const mCreated = document.getElementById('m-created');
+    const mApplicant = document.getElementById('m-applicant');
+        const mImg = document.getElementById('m-img');
+    const mImgLink = document.getElementById('m-img-link');
+        const mCopyEmail = document.getElementById('m-copy-email');
+    const mApprove = document.getElementById('m-approve');
+    const mPending = document.getElementById('m-pending');
+    const mReject = document.getElementById('m-reject');
+
+    let currentDoc = null;
+
+    function openModal(doc) {
+      currentDoc = doc;
+      const d = doc.data; const a = d.applicant || {};
+      mTitle.textContent = `Application — ${d.reference || doc.id}`;
+      mRef.textContent = d.reference || doc.id;
+      mStatus.innerHTML = statusBadge(d.status);
+      mCreated.textContent = fmtDate(d.createdAt);
+
+      const applicantKVs = [
+        ['Full name', a.fullName],
+        ['Email', a.email],
+        ['Phone', a.phone],
+        ['DOB', a.dob],
+        ['Gender', a.gender],
+        ['Address', a.address],
+        ['Occupation', a.occupation],
+        ['Employment status', a.employmentStatus],
+        ['Monthly income', a.monthlyIncome],
+        ['Payment preference', a.paymentPreference],
+        ['Housing status', a.housingStatus],
+        ['Household size', a.householdSize],
+        ['Marital status', a.maritalStatus],
+      ];
+      mApplicant.innerHTML = applicantKVs.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div>${v || '-'}</div></div>`).join('');
+
+      
+      const url = d.cloudinaryUrl || '';
+      if (url) { mImg.src = url; mImgLink.href = url; mImg.alt = 'ID Image'; }
+      else { mImg.src = ''; mImg.alt = 'No image'; mImgLink.removeAttribute('href'); }
+
+      
+      mCopyEmail.onclick = async () => { try { await navigator.clipboard.writeText(a.email || ''); alert('Email copied'); } catch { alert(a.email || ''); } };
+
+      mApprove.onclick = () => updateStatus(doc.ref, 'approved');
+      mPending.onclick = () => updateStatus(doc.ref, 'pending');
+      mReject.onclick = () => updateStatus(doc.ref, 'rejected');
+
+      modal.classList.add('show');
+    }
+
+    function closeModal() { modal.classList.remove('show'); currentDoc = null; }
+    mClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    async function updateStatus(docRef, status) {
+      try {
+        await docRef.update({ status });
+        // Update local object
+        if (currentDoc) currentDoc.data.status = status;
+        // Re-render table and modal
+        renderTable();
+        if (currentDoc) openModal(currentDoc);
+      } catch (e) {
+        alert('Failed to update status: ' + e.message);
+      }
+    }
+
+    
+    
+    // Events
+    searchEl.addEventListener('input', renderTable);
+    statusEl.addEventListener('change', () => fetchPage(true));
+    refreshBtn.addEventListener('click', () => fetchPage(true));
+        loadMoreBtn.addEventListener('click', () => fetchPage(false));
+
+    appsBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-view');
+      if (!btn) return;
+      const id = btn.getAttribute('data-id');
+      const doc = loadedDocs.find(d => d.id === id);
+      if (doc) openModal(doc);
+    });
+
+    // Initial load
+    fetchPage(true);
+  </script>
+</body>
+</html>

