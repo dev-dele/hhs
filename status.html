@@ -3,100 +3,243 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>HHS — Check Application Status</title>
-  <meta name="description" content="Check the status of your HHS Grant Application using your reference and email." />
+  <title>HHS — Grant Program Application Status</title>
+  <meta name="description" content="Check the status of your Human Health Service (HHS) Grant Program application using your reference and email." />
   <link rel="icon" href="logo.png" type="image/png" />
   <style>
-    :root { --bg:#ffffff; --surface:#f8fafc; --panel:#ffffff; --border:#e5e7eb; --text:#0f172a; --muted:#475569; --primary:#1d4ed8; --primary-2:#2563eb; --success:#059669; --danger:#dc2626; --shadow:0 10px 30px rgba(2,6,23,0.08); }
+    :root {
+      --bg:#f5f7fb;
+      --surface:#ffffff;
+      --muted-surface:#f1f5f9;
+      --border:#d0d7e2;
+      --text:#0f172a;
+      --muted:#475569;
+      --primary:#143d6b; /* gov blue */
+      --primary-2:#1d4ed8; /* accent blue */
+      --success:#0f5132;
+      --success-bg:#e9f7ef;
+      --warning:#8a5a0a;
+      --warning-bg:#fff7e6;
+      --danger:#7f1d1d;
+      --danger-bg:#fdecec;
+      --shadow:0 10px 30px rgba(2,6,23,0.08);
+    }
     html, body { margin:0; padding:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--text); background:var(--bg); }
-    .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-    header.site-header { position: sticky; top:0; z-index:40; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-bottom:1px solid var(--border); }
-    .nav { display:flex; align-items:center; justify-content:space-between; gap:16px; padding: 14px 0; }
-    .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
-    .brand img { width:40px; height:40px; object-fit:contain; }
-    .brand .name { font-weight: 800; }
-    .brand .sub { color: var(--muted); font-size: 0.9rem; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 
-    .panel { background:var(--panel); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding: 16px; margin: 18px 0; }
-    label { display:block; font-weight:700; margin: 6px 0; }
+    /* Gov masthead */
+    .gov-banner { background:#0b2e58; color:#e2e8f0; font-size: 0.875rem; }
+    .gov-banner .inner { display:flex; align-items:center; gap:8px; padding:6px 0; }
+    .gov-banner .dot { width:10px; height:10px; border-radius:50%; background:#60a5fa; box-shadow:0 0 0 2px rgba(255,255,255,0.15) inset; }
+    .gov-banner strong { color:#fff; }
+
+    header.site-header { background: linear-gradient(180deg, #103a6a, #0b2e58); color:#fff; border-bottom:1px solid rgba(255,255,255,0.15); }
+    .nav { display:flex; align-items:center; justify-content:space-between; gap:16px; padding: 16px 0; }
+    .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
+    .seal { width:48px; height:48px; border-radius:50%; background:#fff; display:grid; place-items:center; box-shadow:0 1px 2px rgba(0,0,0,0.08) inset; border:2px solid #dbeafe; }
+    .seal img { width:36px; height:36px; object-fit:contain; }
+    .title-wrap { line-height:1.2; }
+    .title { font-weight: 900; font-size:1.125rem; letter-spacing: 0.2px; }
+    .subtitle { color:#dbeafe; font-size:0.92rem; }
+    .nav .actions .btn { background: transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; }
+    .nav .actions .btn:hover { border-color:#fff; }
+
+    /* Buttons and inputs */
+    label { display:block; font-weight:800; margin: 6px 0; letter-spacing:0.2px; color:#0f172a; }
     input[type="text"], input[type="email"] { width:100%; background:#fff; border:1px solid var(--border); border-radius:10px; padding:12px; }
     input:focus { border-color: var(--primary-2); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); outline: none; }
-    .btn { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:10px; padding:12px 16px; font-weight:700; cursor:pointer; }
-    .btn.primary { background: linear-gradient(180deg,var(--primary),var(--primary-2)); color:#fff; box-shadow:var(--shadow); }
+    .btn { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:10px; padding:12px 16px; font-weight:800; cursor:pointer; letter-spacing:0.2px; }
+    .btn.primary { background: linear-gradient(180deg,var(--primary), #0d2f57); color:#fff; box-shadow:var(--shadow); }
     .btn.ghost { background:#fff; color:var(--primary-2); border:1px solid var(--border); }
+    .btn.success { background: linear-gradient(180deg,#166534,#14532d); color:#fff; }
+
+    /* Panels */
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding: 16px; margin: 18px 0; }
+    .panel h2, .panel h3 { margin:0 0 8px 0; }
     .help { color: var(--muted); }
-    .error { color:#7f1d1d; background:#fee2e2; border:1px solid #fecaca; padding:10px; border-radius:10px; }
-    .status-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; font-weight:800; border:1px solid var(--border); }
+    .error { color:var(--danger); background:var(--danger-bg); border:1px solid #fecaca; padding:10px; border-radius:10px; }
+
+    /* Status header card */
+    .status-card { border:1px solid var(--border); border-left:6px solid var(--border); border-radius:14px; background:var(--muted-surface); padding:12px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .status-card.status-approved { border-left-color:#25a06a; background:#f0faf4; }
+    .status-card.status-pending  { border-left-color:#e0a100; background:#fff9ea; }
+    .status-card.status-rejected { border-left-color:#e24d4d; background:#fff1f1; }
+
+    .status-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; font-weight:900; border:1px solid var(--border); text-transform: capitalize; letter-spacing:0.3px; }
     .status-pending { color:#92400e; background:#fffbeb; border-color:#fcd34d; }
     .status-approved { color:#065f46; background:#ecfdf5; border-color:#6ee7b7; }
     .status-rejected { color:#991b1b; background:#fee2e2; border-color:#fecaca; }
-    .kv { display:grid; grid-template-columns: minmax(110px, 160px) 1fr; gap:8px; margin: 8px 0; align-items: start; }
+
+    /* Key-value grid */
+    .section { margin-top:12px; }
+    .section h4 { margin:0 0 6px 0; font-size:1rem; letter-spacing:0.2px; }
+    .kv { display:grid; grid-template-columns: minmax(140px, 220px) 1fr; gap:10px; margin: 8px 0; align-items: start; }
     .kv > div { overflow-wrap: anywhere; word-break: break-word; }
-    .kv .k { color: var(--muted); font-weight: 700; }
+    .kv .k { color: var(--muted); font-weight: 800; }
+
+    /* Applicant card */
+    .id-card { border:1px solid var(--border); border-radius:14px; background: linear-gradient(180deg,#ffffff,#f8fafc); padding:12px; }
+
+    /* Award/Funding card */
+    .award-card { border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,#ffffff,#f5fbff); padding:14px; display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:center; }
+    .award-amount { font-size:1.6rem; font-weight:900; color:#0b3b72; }
+    .award-fee { font-size:1rem; font-weight:800; color:#8a5a0a; background:#fff7e6; border:1px solid #facc15; padding:8px 10px; border-radius:10px; justify-self:start; }
+
+    /* CTA banner */
+    .cta-banner { border:1px dashed #86efac; background:#f0fdf4; color:#065f46; padding:12px; border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+
+    /* Images */
+    .img-grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; }
     .img-wrap { background: #f8fafc; border:1px solid var(--border); border-radius: 12px; padding: 8px; display:grid; place-items:center; }
     .img-wrap img { max-width: 100%; border-radius: 8px; }
-    @media (max-width: 680px) { .kv { grid-template-columns: 1fr; } }
+
+    /* Loading */
+    .loading { display:flex; align-items:center; gap:12px; }
+    .spinner { width:22px; height:22px; border-radius:50%; border:3px solid #cbd5e1; border-top-color:#1d4ed8; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .skeleton { position:relative; overflow:hidden; background:#e5e7eb; border-radius:10px; }
+    .skeleton::after { content:''; position:absolute; inset:0; transform: translateX(-100%); background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.6), rgba(255,255,255,0)); animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+    .skeleton-row { height:14px; margin:8px 0; }
+
+    /* Layout tweaks */
+    .form-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+    .cta-row { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+
+    @media (max-width: 780px) {
+      .img-grid { grid-template-columns: 1fr; }
+      .kv { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .award-card { grid-template-columns: 1fr; }
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
+  <!-- Official site banner -->
+  <div class="gov-banner">
+    <div class="container inner" role="status" aria-live="polite">
+      <span class="dot" aria-hidden="true"></span>
+      <span>This is an official <strong>Human Health Service</strong> program website.</span>
+    </div>
+  </div>
+
   <header class="site-header">
     <div class="container nav">
-      <a href="index.html" class="brand">
-        <img src="logo.png" alt="HHS" />
-        <div>
-          <div class="name">Human Health Service</div>
-          <div class="sub">Check Application Status</div>
+      <a href="index.html" class="brand" aria-label="Human Health Service home">
+        <div class="seal"><img src="logo.png" alt="HHS" /></div>
+        <div class="title-wrap">
+          <div class="title">Human Health Service</div>
+          <div class="subtitle">Grant Program — Application Status</div>
         </div>
       </a>
-      <div>
+      <div class="actions">
         <a href="index.html" class="btn ghost">Back to portal</a>
       </div>
     </div>
   </header>
 
   <main class="container" style="padding: 18px 0 28px;">
-    <section class="panel">
-      <h2 style="margin:0 0 6px 0;">Find your application</h2>
-      <p class="help">Enter your reference and the email address you used when applying.</p>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+    <section class="panel" aria-labelledby="find-heading">
+      <h2 id="find-heading" style="margin:0 0 6px 0;">Find your application</h2>
+      <p class="help">Enter your reference and the email address you used when applying. Keep this information secure.</p>
+      <div class="form-grid">
         <div>
           <label for="ref">Reference</label>
-          <input id="ref" type="text" placeholder="e.g., HHS-XXXXXXXX-XXXXX" />
+          <input id="ref" type="text" placeholder="e.g., HHS-XXXXXXXX-XXXXX" autocomplete="off" />
         </div>
         <div>
           <label for="email">Email</label>
-          <input id="email" type="email" placeholder="your@email.com" />
+          <input id="email" type="email" placeholder="your@email.com" autocomplete="off" />
         </div>
       </div>
-      <div style="display:flex; gap:10px; margin-top:12px;">
+      <div class="cta-row">
         <button id="btnSearch" class="btn primary">Check status</button>
         <button id="btnClear" class="btn ghost">Clear</button>
       </div>
-      <div id="err" class="error" style="display:none; margin-top:10px;"></div>
+      <div id="err" class="error" style="display:none; margin-top:10px;" role="alert"></div>
     </section>
 
-    <section id="result" class="panel" style="display:none;">
-      <div style="display:flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <h3 style="margin:0;">Application</h3>
+    <!-- Loading state -->
+    <section id="loading" class="panel" style="display:none;">
+      <div class="loading" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <div style="font-weight:800;">Retrieving your application…</div>
+          <div class="help">Please wait while we securely look up your information.</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="status-card skeleton" style="height:56px;"></div>
+        <div class="skeleton-row skeleton" style="width:60%;"></div>
+        <div class="skeleton-row skeleton" style="width:40%;"></div>
+        <div class="skeleton-row skeleton" style="width:70%;"></div>
+      </div>
+    </section>
+
+    <!-- Result state -->
+    <section id="result" class="panel" style="display:none;" aria-live="polite">
+      <div id="status-card" class="status-card">
+        <div>
+          <div style="font-weight:900; letter-spacing:0.2px;">Application</div>
+          <div class="help">Review the current status of your submission</div>
+        </div>
         <div id="badge" class="status-badge status-pending">pending</div>
       </div>
-      <div class="kv"><div class="k">Reference</div><div id="r-ref">-</div></div>
-      <div class="kv"><div class="k">Created</div><div id="r-created">-</div></div>
-      <div class="kv"><div class="k">Full name</div><div id="r-name">-</div></div>
-      <div class="kv"><div class="k">Email</div><div id="r-email">-</div></div>
-      <div class="kv"><div class="k">Phone</div><div id="r-phone">-</div></div>
-      <div class="kv"><div class="k">Payment</div><div id="r-payment">-</div></div>
-      <div class="kv"><div class="k">Housing</div><div id="r-housing">-</div></div>
-      <div class="kv"><div class="k">Funding</div><div id="r-funding">-</div></div>
-      <div class="img-wrap" style="margin-top:12px;">
-        <div class="help">Front of ID</div>
-        <img id="r-img-front" alt="ID front" />
+
+      <div id="cta-banner" class="cta-banner" style="display:none; margin-top:12px;">
+        <div>
+          <div style="font-weight:900;">Your application is approved</div>
+          <div class="help">Follow the instructions to complete claim and delivery verification.</div>
+        </div>
+        <a id="btnClaim" class="btn success" href="#">Claim your grant</a>
       </div>
-      <div class="img-wrap" style="margin-top:8px;">
-        <div class="help">Back of ID</div>
-        <img id="r-img-back" alt="ID back" />
+
+      <div class="section">
+        <h4>Summary</h4>
+        <div class="kv"><div class="k">Reference</div><div id="r-ref">-</div></div>
+        <div class="kv"><div class="k">Created</div><div id="r-created">-</div></div>
+      </div>
+
+      <div class="section id-card">
+        <h4>Applicant</h4>
+        <div class="kv"><div class="k">Full name</div><div id="r-name">-</div></div>
+        <div class="kv"><div class="k">Email</div><div id="r-email">-</div></div>
+        <div class="kv"><div class="k">Phone</div><div id="r-phone">-</div></div>
+      </div>
+
+      <div class="section">
+        <h4>Program details</h4>
+        <div id="award-card" class="award-card" style="display:none;">
+          <div>
+            <div class="help" style="font-weight:800;">Approved grant amount</div>
+            <div id="award-amount" class="award-amount">—</div>
+          </div>
+          <div>
+            <div class="help" style="font-weight:800;">Processing/clearance fee</div>
+            <div id="award-fee" class="award-fee">—</div>
+          </div>
+        </div>
+        <div class="kv"><div class="k">Payment preference</div><div id="r-payment">-</div></div>
+        <div class="kv"><div class="k">Housing status</div><div id="r-housing">-</div></div>
+        <div class="kv"><div class="k">Funding</div><div id="r-funding">-</div></div>
+      </div>
+
+      <div class="section">
+        <h4>Identity verification</h4>
+        <div class="img-grid">
+          <div class="img-wrap">
+            <div class="help">Front of ID</div>
+            <img id="r-img-front" alt="ID front" />
+          </div>
+          <div class="img-wrap">
+            <div class="help">Back of ID</div>
+            <img id="r-img-back" alt="ID back" />
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -118,14 +261,31 @@
     function showErr(msg) { const el = document.getElementById('err'); el.textContent = msg; el.style.display = 'block'; }
     function clearErr() { const el = document.getElementById('err'); el.textContent = ''; el.style.display = 'none'; }
 
+    function setLoading(v) {
+      document.getElementById('loading').style.display = v ? 'block' : 'none';
+      document.getElementById('result').style.display = 'none';
+      const btn = document.getElementById('btnSearch');
+      btn.disabled = !!v;
+      btn.setAttribute('aria-busy', v ? 'true' : 'false');
+    }
+
     function setBadge(status) {
       const b = document.getElementById('badge');
+      const card = document.getElementById('status-card');
       const s = (status || 'pending').toLowerCase();
       b.textContent = s;
       b.className = 'status-badge ' + (s === 'approved' ? 'status-approved' : s === 'rejected' ? 'status-rejected' : 'status-pending');
+      card.className = 'status-card ' + (s === 'approved' ? 'status-approved' : s === 'rejected' ? 'status-rejected' : 'status-pending');
+      // CTA visibility for approved
+      const cta = document.getElementById('cta-banner');
+      cta.style.display = s === 'approved' ? 'flex' : 'none';
     }
 
     function fmtDate(ts) { try { return ts?.toDate ? ts.toDate().toLocaleString() : new Date(ts).toLocaleString(); } catch { return '-'; } }
+    function fmtCurrency(n) {
+      try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n)); }
+      catch { return (n!=null ? Number(n).toLocaleString() : '-') }
+    }
 
     async function search() {
       clearErr();
@@ -133,13 +293,15 @@
       const email = document.getElementById('email').value.trim().toLowerCase();
       if (!ref || !email) { showErr('Please enter both reference and email.'); return; }
       try {
+        setLoading(true);
         const q = await db.collection('applications').where('reference','==', ref).limit(1).get();
-        if (q.empty) { showErr('No application found for that reference.'); return; }
+        if (q.empty) { setLoading(false); showErr('No application found for that reference.'); return; }
         const doc = q.docs[0];
         const d = doc.data();
         const a = d.applicant || {};
-        if ((a.email || '').toLowerCase() !== email) { showErr('Email does not match this reference.'); return; }
+        if ((a.email || '').toLowerCase() !== email) { setLoading(false); showErr('Email does not match this reference.'); return; }
         // Render
+        setLoading(false);
         document.getElementById('result').style.display = 'block';
         setBadge(d.status);
         document.getElementById('r-ref').textContent = d.reference || doc.id;
@@ -155,17 +317,45 @@
           f.fee != null ? `Fee: ${Number(f.fee).toLocaleString()}` : null
         ].filter(Boolean).join(' • ');
         document.getElementById('r-funding').textContent = fundingText || '-';
-        const imgF = document.getElementById('r-img-front');
-        const imgB = document.getElementById('r-img-back');
-        if (d.cloudinaryUrlFront) { imgF.src = d.cloudinaryUrlFront; imgF.alt = 'ID front'; } else { imgF.removeAttribute('src'); imgF.alt = 'No image'; }
-        if (d.cloudinaryUrlBack)  { imgB.src = d.cloudinaryUrlBack;  imgB.alt = 'ID back'; }  else { imgB.removeAttribute('src'); imgB.alt = 'No image'; }
+
+        // Award/Fee card
+        const awardCard = document.getElementById('award-card');
+        const hasAward = (f && (f.amount != null || f.fee != null));
+        if (hasAward) {
+          document.getElementById('award-amount').textContent = f.amount != null ? fmtCurrency(f.amount) : '—';
+          document.getElementById('award-fee').textContent = f.fee != null ? `${fmtCurrency(f.fee)} processing` : '—';
+          awardCard.style.display = 'grid';
+        } else {
+          awardCard.style.display = 'none';
+        }
+
+        // CTA compose
+        const btnClaim = document.getElementById('btnClaim');
+        const subject = encodeURIComponent(`HHS Grant Claim — Reference ${d.reference || doc.id}`);
+        const lines = [
+          `Reference: ${d.reference || doc.id}`,
+          `Applicant: ${a.fullName || '-'}`,
+          f.amount != null ? `Approved amount: ${fmtCurrency(f.amount)}` : null,
+          f.fee != null ? `Processing/Clearance fee: ${fmtCurrency(f.fee)}` : null,
+          '',
+          'I would like to proceed with claiming my grant. Please provide the next steps for verification and delivery.'
+        ].filter(Boolean);
+        const body = encodeURIComponent(lines.join('\n'));
+        btnClaim.href = `mailto:?subject=${subject}&body=${body}`;
       } catch (e) {
+        setLoading(false);
         showErr('Failed to look up application: ' + e.message);
       }
     }
 
     document.getElementById('btnSearch').addEventListener('click', search);
-    document.getElementById('btnClear').addEventListener('click', () => { document.getElementById('ref').value=''; document.getElementById('email').value=''; document.getElementById('result').style.display='none'; clearErr(); });
+    document.getElementById('btnClear').addEventListener('click', () => {
+      document.getElementById('ref').value='';
+      document.getElementById('email').value='';
+      document.getElementById('result').style.display='none';
+      document.getElementById('loading').style.display='none';
+      clearErr();
+    });
   </script>
 </body>
 </html>
