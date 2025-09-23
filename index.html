@@ -327,36 +327,62 @@
     <!-- STEP 2: CAMERA / ID CAPTURE -->
     <section class="panel hidden" id="step-2" role="region" aria-labelledby="chip-2">
       <h2 style="margin-top:0">Identity Verification</h2>
-      <p class="help">Place your government-issued ID card inside the rectangle and click Snap. Or upload a photo/scan if you prefer.</p>
+      <p class="help">Capture or upload both sides of your ID. First the Front, then the Back.</p>
 
-      <div class="camera-wrap" id="cameraWrap">
-        <video id="camera" autoplay playsinline></video>
-        <div class="overlay-rect" aria-hidden="true">
-          <div class="rect" id="captureRect" title="Align ID card within this area"></div>
+      <!-- ID Front Page -->
+      <div id="id-front-page">
+        <h3>Front of ID</h3>
+        <div class="camera-wrap" id="cameraWrapFront">
+          <video id="cameraFront" autoplay playsinline></video>
+          <div class="overlay-rect" aria-hidden="true">
+            <div class="rect" id="captureRectFront" title="Align ID within this area"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" id="btn-start-camera-front" class="btn ghost">Start camera</button>
+          <button type="button" id="btn-snap-front" class="btn primary" disabled>Snap Front</button>
+          <button type="button" class="btn ghost" id="btn-retake-front" disabled>Retake Front</button>
+        </div>
+        <div class="or-divider" aria-hidden="true"><span>or</span></div>
+        <div class="dropzone" id="dropzoneFront">
+          <p style="margin: 6px 0">Drag & drop front image here, or</p>
+          <label for="fileInputFront" class="btn ghost" style="cursor:pointer;">Choose front</label>
+          <input id="fileInputFront" type="file" accept="image/*" capture="environment" />
+        </div>
+        <div class="preview" id="snapPreviewFront" aria-live="polite" style="margin-top:12px;"></div>
+        <div class="actions">
+          <button type="button" id="btn-next-to-back" class="btn primary" disabled>Next: Capture Back</button>
+          <button type="button" class="btn ghost" id="btn-back-1">Back to Form</button>
         </div>
       </div>
 
-      <div class="actions">
-        <button type="button" id="btn-start-camera" class="btn ghost">Start camera</button>
-        <button type="button" id="btn-snap" class="btn primary" disabled>Snap</button>
-        <button type="button" class="btn ghost" id="btn-retake" disabled>Retake</button>
-      </div>
-
-      <div class="or-divider" aria-hidden="true"><span>or</span></div>
-
-      <div class="dropzone" id="dropzone">
-        <p style="margin: 6px 0">Drag & drop an image of your ID here, or</p>
-        <label for="fileInput" class="btn ghost" style="cursor:pointer;">Choose file</label>
-        <input id="fileInput" type="file" accept="image/*" capture="environment" />
-        <div class="help" style="margin-top:8px">Accepted formats: JPG, PNG. The image will be stored securely and linked to your application.</div>
-      </div>
-
-      <div class="preview" id="snapPreview" aria-live="polite"></div>
-      <div id="camera-error" class="error hidden" role="alert"></div>
-
-      <div class="actions">
-        <button type="button" id="btn-to-terms" class="btn primary" disabled>Continue to Program Overview & Terms</button>
-        <button type="button" class="btn ghost" id="btn-back-1">Back to Form</button>
+      <!-- ID Back Page -->
+      <div id="id-back-page" class="hidden" style="margin-top:16px;">
+        <h3>Back of ID</h3>
+        <div class="camera-wrap" id="cameraWrapBack">
+          <video id="cameraBack" autoplay playsinline></video>
+          <div class="overlay-rect" aria-hidden="true">
+            <div class="rect" id="captureRectBack" title="Align ID within this area"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" id="btn-start-camera-back" class="btn ghost">Start camera</button>
+          <button type="button" id="btn-snap-back" class="btn primary" disabled>Snap Back</button>
+          <button type="button" class="btn ghost" id="btn-retake-back" disabled>Retake Back</button>
+        </div>
+        <div class="or-divider" aria-hidden="true"><span>or</span></div>
+        <div class="dropzone" id="dropzoneBack">
+          <p style="margin: 6px 0">Drag & drop back image here, or</p>
+          <label for="fileInputBack" class="btn ghost" style="cursor:pointer;">Choose back</label>
+          <input id="fileInputBack" type="file" accept="image/*" capture="environment" />
+          <div class="help" style="margin-top:8px">Accepted formats: JPG, PNG. Both sides are required to continue.</div>
+        </div>
+        <div class="preview" id="snapPreviewBack" aria-live="polite" style="margin-top:12px;"></div>
+        <div id="camera-error" class="error hidden" role="alert"></div>
+        <div class="actions">
+          <button type="button" id="btn-to-terms" class="btn primary" disabled>Continue to Program Overview & Terms</button>
+          <button type="button" class="btn ghost" id="btn-back-to-front">Back to Front</button>
+        </div>
       </div>
     </section>
 
@@ -531,23 +557,35 @@
     document.getElementById('btn-back-1').addEventListener('click', () => showStep(1));
 
     // Camera and upload handling
-    const btnStart = document.getElementById('btn-start-camera');
-    const btnSnap = document.getElementById('btn-snap');
-    const btnRetake = document.getElementById('btn-retake');
+    const btnStartFront = document.getElementById('btn-start-camera-front');
+    const btnStartBack = document.getElementById('btn-start-camera-back');
+    const btnSnapFront = document.getElementById('btn-snap-front');
+    const btnSnapBack = document.getElementById('btn-snap-back');
+    const btnRetakeFront = document.getElementById('btn-retake-front');
+    const btnRetakeBack = document.getElementById('btn-retake-back');
+    const btnNextToBack = document.getElementById('btn-next-to-back');
+    const btnBackToFront = document.getElementById('btn-back-to-front');
     const btnToTerms = document.getElementById('btn-to-terms');
-    const video = document.getElementById('camera');
+    const videoFront = document.getElementById('cameraFront');
+    const videoBack = document.getElementById('cameraBack');
     const cameraError = document.getElementById('camera-error');
-    const snapPreview = document.getElementById('snapPreview');
-    const captureRect = document.getElementById('captureRect');
-    const dropzone = document.getElementById('dropzone');
-    const fileInput = document.getElementById('fileInput');
+    const snapPreviewFront = document.getElementById('snapPreviewFront');
+    const snapPreviewBack = document.getElementById('snapPreviewBack');
+    const captureRectFront = document.getElementById('captureRectFront');
+    const captureRectBack = document.getElementById('captureRectBack');
+    const dropzoneFront = document.getElementById('dropzoneFront');
+    const dropzoneBack = document.getElementById('dropzoneBack');
+    const fileInputFront = document.getElementById('fileInputFront');
+    const fileInputBack = document.getElementById('fileInputBack');
+    const idFrontPage = document.getElementById('id-front-page');
+    const idBackPage = document.getElementById('id-back-page');
     let stream;
 
-    async function startCamera() {
+    async function startCameraFor(videoEl) {
       cameraError.classList.add('hidden'); cameraError.textContent = '';
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-        video.srcObject = stream; btnSnap.disabled = false; btnRetake.disabled = true;
+        videoEl.srcObject = stream;
       } catch (err) {
         cameraError.textContent = 'Unable to access camera. You can allow camera permissions or upload an image instead below.';
         cameraError.classList.remove('hidden');
@@ -556,71 +594,97 @@
 
     function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } video.srcObject = null; }
 
-    function captureFromVideo() {
-      const videoRect = video.getBoundingClientRect(); const overlayRect = captureRect.getBoundingClientRect();
-      if (!video.videoWidth || !video.videoHeight) return null;
-      const scaleX = video.videoWidth / videoRect.width; const scaleY = video.videoHeight / videoRect.height;
+    function captureFromVideo(videoEl, overlayEl) {
+      const videoRect = videoEl.getBoundingClientRect(); const overlayRect = overlayEl.getBoundingClientRect();
+      if (!videoEl.videoWidth || !videoEl.videoHeight) return null;
+      const scaleX = videoEl.videoWidth / videoRect.width; const scaleY = videoEl.videoHeight / videoRect.height;
       const sx = Math.max(0, (overlayRect.left - videoRect.left) * scaleX);
       const sy = Math.max(0, (overlayRect.top - videoRect.top) * scaleY);
-      const sw = Math.min(video.videoWidth, overlayRect.width * scaleX);
-      const sh = Math.min(video.videoHeight, overlayRect.height * scaleY);
+      const sw = Math.min(videoEl.videoWidth, overlayRect.width * scaleX);
+      const sh = Math.min(videoEl.videoHeight, overlayRect.height * scaleY);
       const canvas = document.createElement('canvas'); canvas.width = Math.round(sw); canvas.height = Math.round(sh);
-      const ctx = canvas.getContext('2d'); ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height); ctx.restore();
+      const ctx = canvas.getContext('2d'); ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height); ctx.restore();
       return canvas.toDataURL('image/png');
     }
 
-    function renderPreview(dataUrl, noteClass, noteText, includeDownload = true) {
-      snapPreview.innerHTML = '';
-      const img = document.createElement('img'); img.src = dataUrl; img.alt = 'ID preview'; img.style.maxWidth = '520px'; img.style.border = '1px solid var(--border)'; img.style.borderRadius = '12px';
+    function renderPreviewSide(side, dataUrl, noteClass, noteText) {
+      const target = side === 'Front' ? snapPreviewFront : snapPreviewBack;
+      target.innerHTML = '';
+      const label = document.createElement('div'); label.className = 'help'; label.textContent = side + ' of ID';
+      const img = document.createElement('img'); img.src = dataUrl; img.alt = 'ID ' + side + ' preview'; img.style.maxWidth = '520px'; img.style.border = '1px solid var(--border)'; img.style.borderRadius = '12px';
       const note = document.createElement('div'); note.className = noteClass; note.textContent = noteText;
-      snapPreview.append(img, note);
-          }
-
-    async function uploadAndLink(dataUrl) {
-      // Store local copy
-      localStorage.setItem('hhsIdImage', dataUrl);
-      btnToTerms.disabled = false; btnRetake.disabled = false; btnSnap.disabled = true;
-      renderPreview(dataUrl, 'help', 'Uploading ID image to secure storage…');
-      try {
-        const result = await uploadToCloudinary(dataUrl);
-        localStorage.setItem('hhsCloudinaryUrl', result.secure_url || '');
-        localStorage.setItem('hhsCloudinaryPublicId', result.public_id || '');
-        renderPreview(dataUrl, 'success', 'ID image uploaded and linked to your application.');
-      } catch (e) {
-        renderPreview(dataUrl, 'error', `Upload failed: ${e.message}. You can continue and we will upload again on submit.`);
-      } finally {
-        stopCamera();
-      }
+      target.append(label, img, note);
     }
 
-    btnStart.addEventListener('click', startCamera);
-    btnSnap.addEventListener('click', () => { const dataUrl = captureFromVideo(); if (!dataUrl) { cameraError.textContent = 'Capture failed. Ensure the camera is on and try again.'; cameraError.classList.remove('hidden'); return; } uploadAndLink(dataUrl); });
-    btnRetake.addEventListener('click', () => { snapPreview.innerHTML = ''; localStorage.removeItem('hhsIdImage'); localStorage.removeItem('hhsCloudinaryUrl'); localStorage.removeItem('hhsCloudinaryPublicId'); btnToTerms.disabled = true; btnRetake.disabled = true; btnSnap.disabled = false; startCamera(); });
+    function updateContinueEnabled() {
+      const hasFront = !!localStorage.getItem('hhsIdImageFront');
+      const hasBack = !!localStorage.getItem('hhsIdImageBack');
+      btnToTerms.disabled = !(hasFront && hasBack);
+    }
+
+    async function uploadAndLinkSide(side, dataUrl) {
+      const key = side === 'Front' ? 'Front' : 'Back';
+      localStorage.setItem('hhsIdImage' + key, dataUrl);
+      renderPreviewSide(side, dataUrl, 'help', 'Uploading ' + side.toLowerCase() + ' image…');
+      updateContinueEnabled();
+      try {
+        const result = await uploadToCloudinary(dataUrl);
+        localStorage.setItem('hhsCloudinaryUrl' + key, result.secure_url || '');
+        localStorage.setItem('hhsCloudinaryPublicId' + key, result.public_id || '');
+        renderPreviewSide(side, dataUrl, 'success', side + ' image uploaded and linked.');
+      } catch (e) {
+        renderPreviewSide(side, dataUrl, 'error', `Upload failed: ${e.message}. It will be retried on submit.`);
+      } finally { stopCamera(); }
+    }
+
+    btnStartFront.addEventListener('click', () => startCameraFor(videoFront));
+    btnStartBack.addEventListener('click', () => startCameraFor(videoBack));
+    btnSnapFront.addEventListener('click', () => { const dataUrl = captureFromVideo(videoFront, captureRectFront); if (!dataUrl) { cameraError.textContent = 'Capture failed. Ensure the camera is on and try again.'; cameraError.classList.remove('hidden'); return; } uploadAndLinkSide('Front', dataUrl); btnRetakeFront.disabled = false; btnSnapFront.disabled = true; btnNextToBack.disabled = false; });
+    btnSnapBack.addEventListener('click', () => { const dataUrl = captureFromVideo(videoBack, captureRectBack); if (!dataUrl) { cameraError.textContent = 'Capture failed. Ensure the camera is on and try again.'; cameraError.classList.remove('hidden'); return; } uploadAndLinkSide('Back', dataUrl); btnRetakeBack.disabled = false; btnSnapBack.disabled = true; });
+    btnRetakeFront.addEventListener('click', () => { snapPreviewFront.innerHTML = ''; localStorage.removeItem('hhsIdImageFront'); localStorage.removeItem('hhsCloudinaryUrlFront'); localStorage.removeItem('hhsCloudinaryPublicIdFront'); updateContinueEnabled(); btnRetakeFront.disabled = true; btnSnapFront.disabled = false; startCameraFor(videoFront); btnNextToBack.disabled = true; });
+    btnRetakeBack.addEventListener('click', () => { snapPreviewBack.innerHTML = ''; localStorage.removeItem('hhsIdImageBack'); localStorage.removeItem('hhsCloudinaryUrlBack'); localStorage.removeItem('hhsCloudinaryPublicIdBack'); updateContinueEnabled(); btnRetakeBack.disabled = true; btnSnapBack.disabled = false; startCameraFor(videoBack); });
 
     // Upload fallback logic (drag & drop or file chooser)
-    function processImageFile(file) {
+    function processImageFileSide(side, file) {
       if (!file || !file.type.startsWith('image/')) return;
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
-          const rect = captureRect.getBoundingClientRect(); const targetW = Math.max(320, Math.round(rect.width)); const targetH = Math.max(200, Math.round(rect.height));
+          const rectEl = side === 'Front' ? captureRectFront : captureRectBack;
+          const rect = rectEl.getBoundingClientRect(); const targetW = Math.max(320, Math.round(rect.width)); const targetH = Math.max(200, Math.round(rect.height));
           const canvas = document.createElement('canvas'); canvas.width = targetW; canvas.height = targetH; const ctx = canvas.getContext('2d');
           const scale = Math.max(targetW / img.naturalWidth, targetH / img.naturalHeight);
           const drawW = img.naturalWidth * scale; const drawH = img.naturalHeight * scale; const dx = (targetW - drawW) / 2; const dy = (targetH - drawH) / 2;
           ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, targetW, targetH); ctx.drawImage(img, dx, dy, drawW, drawH);
           const dataUrl = canvas.toDataURL('image/png');
-          uploadAndLink(dataUrl);
+          uploadAndLinkSide(side, dataUrl);
+          if (side === 'Front') { btnRetakeFront.disabled = false; btnNextToBack.disabled = false; } else { btnRetakeBack.disabled = false; }
         };
         img.src = reader.result;
       };
       reader.readAsDataURL(file);
     }
 
-    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('drag'); const file = e.dataTransfer.files && e.dataTransfer.files[0]; if (file) { btnToTerms.disabled = false; } processImageFile(file); });
-    fileInput.addEventListener('change', () => { const f = fileInput.files && fileInput.files[0]; if (f) { btnToTerms.disabled = false; } processImageFile(f); });
+    dropzoneFront.addEventListener('dragover', (e) => { e.preventDefault(); dropzoneFront.classList.add('drag'); });
+    dropzoneFront.addEventListener('dragleave', () => dropzoneFront.classList.remove('drag'));
+    dropzoneFront.addEventListener('drop', (e) => { e.preventDefault(); dropzoneFront.classList.remove('drag'); const file = e.dataTransfer.files && e.dataTransfer.files[0]; if (file) { processImageFileSide('Front', file); } updateContinueEnabled(); });
+    fileInputFront.addEventListener('change', () => { const f = fileInputFront.files && fileInputFront.files[0]; if (f) { processImageFileSide('Front', f); } updateContinueEnabled(); });
+
+    dropzoneBack.addEventListener('dragover', (e) => { e.preventDefault(); dropzoneBack.classList.add('drag'); });
+    dropzoneBack.addEventListener('dragleave', () => dropzoneBack.classList.remove('drag'));
+    dropzoneBack.addEventListener('drop', (e) => { e.preventDefault(); dropzoneBack.classList.remove('drag'); const file = e.dataTransfer.files && e.dataTransfer.files[0]; if (file) { processImageFileSide('Back', file); } updateContinueEnabled(); });
+    fileInputBack.addEventListener('change', () => { const f = fileInputBack.files && fileInputBack.files[0]; if (f) { processImageFileSide('Back', f); } updateContinueEnabled(); });
+
+    // Navigate between ID pages
+    function showIdSide(side) {
+      const isFront = side === 'front';
+      idFrontPage.classList.toggle('hidden', !isFront);
+      idBackPage.classList.toggle('hidden', isFront);
+      window.scrollTo({ top: idFrontPage.offsetTop, behavior: 'smooth' });
+    }
+    document.getElementById('btn-next-to-back').addEventListener('click', () => showIdSide('back'));
+    document.getElementById('btn-back-to-front').addEventListener('click', () => showIdSide('front'));
 
     // Terms acknowledgements
     const ackOverview = document.getElementById('ackOverview');
@@ -631,7 +695,7 @@
     [ackOverview, ackTerms, ackEmail].forEach(cb => cb.addEventListener('change', updateSubmitEnabled));
 
     document.getElementById('btn-back-2').addEventListener('click', () => showStep(2));
-    btnToTerms.addEventListener('click', () => { if (!localStorage.getItem('hhsIdImage')) { alert('Please capture or upload your ID image before continuing.'); return; } showStep(3); });
+    btnToTerms.addEventListener('click', () => { if (!(localStorage.getItem('hhsIdImageFront') && localStorage.getItem('hhsIdImageBack'))) { alert('Please capture or upload both Front and Back of your ID before continuing.'); return; } showStep(3); });
 
     function generateRef() { const ts = Date.now().toString(36).toUpperCase(); const rnd = Math.random().toString(36).slice(2, 7).toUpperCase(); return `HHS-${ts}-${rnd}`; }
 
@@ -640,21 +704,25 @@
       const formRaw = localStorage.getItem('hhsApplication');
       if (!formRaw) { alert('Form data missing. Returning to Step 1.'); showStep(1); return; }
 
-      // Ensure Cloudinary URL exists; if not and we have a local image, try uploading now
-      let cloudUrl = localStorage.getItem('hhsCloudinaryUrl');
-      const localImg = localStorage.getItem('hhsIdImage');
-      if (!cloudUrl && localImg) {
-        try { const up = await uploadToCloudinary(localImg); localStorage.setItem('hhsCloudinaryUrl', up.secure_url || ''); localStorage.setItem('hhsCloudinaryPublicId', up.public_id || ''); cloudUrl = up.secure_url; }
-        catch (e) { alert('Unable to upload ID image to Cloudinary. Please ensure the upload preset is configured and try again.'); return; }
+      // Ensure Cloudinary URLs exist for both sides; if not and we have local images, try uploading now
+      let cloudUrlFront = localStorage.getItem('hhsCloudinaryUrlFront');
+      let cloudUrlBack = localStorage.getItem('hhsCloudinaryUrlBack');
+      const localFront = localStorage.getItem('hhsIdImageFront');
+      const localBack = localStorage.getItem('hhsIdImageBack');
+      if (!cloudUrlFront && localFront) {
+        try { const upF = await uploadToCloudinary(localFront); localStorage.setItem('hhsCloudinaryUrlFront', upF.secure_url || ''); localStorage.setItem('hhsCloudinaryPublicIdFront', upF.public_id || ''); cloudUrlFront = upF.secure_url; } catch (e) { /* handled below */ }
       }
-      if (!cloudUrl) { alert('ID image is required. Please capture or upload your ID and wait for upload to complete.'); return; }
+      if (!cloudUrlBack && localBack) {
+        try { const upB = await uploadToCloudinary(localBack); localStorage.setItem('hhsCloudinaryUrlBack', upB.secure_url || ''); localStorage.setItem('hhsCloudinaryPublicIdBack', upB.public_id || ''); cloudUrlBack = upB.secure_url; } catch (e) { /* handled below */ }
+      }
+      if (!(cloudUrlFront && cloudUrlBack)) { alert('Both front and back ID images are required. Please capture/upload both and try again.'); return; }
 
       const ref = generateRef(); localStorage.setItem('hhsRef', ref);
 
       // Save to Firestore
       try {
         const data = JSON.parse(formRaw);
-        const doc = { reference: ref, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(), applicant: data, cloudinaryUrl: localStorage.getItem('hhsCloudinaryUrl'), cloudinaryPublicId: localStorage.getItem('hhsCloudinaryPublicId') };
+        const doc = { reference: ref, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(), applicant: data, cloudinaryUrlFront: localStorage.getItem('hhsCloudinaryUrlFront'), cloudinaryPublicIdFront: localStorage.getItem('hhsCloudinaryPublicIdFront'), cloudinaryUrlBack: localStorage.getItem('hhsCloudinaryUrlBack'), cloudinaryPublicIdBack: localStorage.getItem('hhsCloudinaryPublicIdBack') };
         await db.collection('applications').add(doc);
       } catch (e) {
         alert('Failed to save application to Firestore: ' + e.message); return;
@@ -676,7 +744,7 @@
     });
 
     
-    document.getElementById('btn-new').addEventListener('click', () => { if (confirm('This will clear the current application from this device. Continue?')) { localStorage.removeItem('hhsApplication'); localStorage.removeItem('hhsIdImage'); localStorage.removeItem('hhsCloudinaryUrl'); localStorage.removeItem('hhsCloudinaryPublicId'); localStorage.removeItem('hhsRef'); form.reset(); document.getElementById('snapPreview').innerHTML = ''; showLanding(); } });
+    document.getElementById('btn-new').addEventListener('click', () => { if (confirm('This will clear the current application from this device. Continue?')) { localStorage.removeItem('hhsApplication'); localStorage.removeItem('hhsIdImageFront'); localStorage.removeItem('hhsIdImageBack'); localStorage.removeItem('hhsCloudinaryUrlFront'); localStorage.removeItem('hhsCloudinaryPublicIdFront'); localStorage.removeItem('hhsCloudinaryUrlBack'); localStorage.removeItem('hhsCloudinaryPublicIdBack'); localStorage.removeItem('hhsRef'); form.reset(); document.getElementById('snapPreviewFront').innerHTML = ''; document.getElementById('snapPreviewBack').innerHTML = ''; showLanding(); } });
 
     // Init
     (function init() {

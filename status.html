@@ -90,7 +90,12 @@
       <div class="kv"><div class="k">Payment</div><div id="r-payment">-</div></div>
       <div class="kv"><div class="k">Housing</div><div id="r-housing">-</div></div>
       <div class="img-wrap" style="margin-top:12px;">
-        <img id="r-img" alt="ID image" />
+        <div class="help">Front of ID</div>
+        <img id="r-img-front" alt="ID front" />
+      </div>
+      <div class="img-wrap" style="margin-top:8px;">
+        <div class="help">Back of ID</div>
+        <img id="r-img-back" alt="ID back" />
       </div>
     </section>
   </main>
@@ -143,8 +148,10 @@
         document.getElementById('r-phone').textContent = a.phone || '-';
         document.getElementById('r-payment').textContent = a.paymentPreference || '-';
         document.getElementById('r-housing').textContent = a.housingStatus || '-';
-        const img = document.getElementById('r-img');
-        if (d.cloudinaryUrl) { img.src = d.cloudinaryUrl; img.alt = 'ID image'; } else { img.removeAttribute('src'); img.alt = 'No image'; }
+        const imgF = document.getElementById('r-img-front');
+        const imgB = document.getElementById('r-img-back');
+        if (d.cloudinaryUrlFront) { imgF.src = d.cloudinaryUrlFront; imgF.alt = 'ID front'; } else { imgF.removeAttribute('src'); imgF.alt = 'No image'; }
+        if (d.cloudinaryUrlBack)  { imgB.src = d.cloudinaryUrlBack;  imgB.alt = 'ID back'; }  else { imgB.removeAttribute('src'); imgB.alt = 'No image'; }
       } catch (e) {
         showErr('Failed to look up application: ' + e.message);
       }

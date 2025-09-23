@@ -139,13 +139,46 @@
         </div>
         <div>
           <div class="img-wrap">
-            <img id="m-img" alt="ID image" />
+            <div class="help">Front of ID</div>
+            <img id="m-img-front" alt="ID front" />
+          </div>
+          <div class="img-wrap" style="margin-top:8px;">
+            <div class="help">Back of ID</div>
+            <img id="m-img-back" alt="ID back" />
           </div>
           <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-            <a id="m-img-link" href="#" target="_blank" class="btn ghost">Open image</a>
+            <a id="m-img-link-front" href="#" target="_blank" class="btn ghost">Open front</a>
+            <a id="m-img-link-back" href="#" target="_blank" class="btn ghost">Open back</a>
             <button class="btn primary" id="m-approve">Mark Approved</button>
             <button class="btn warn" id="m-pending">Mark Pending</button>
             <button class="btn ghost" id="m-reject" style="border-color:#fecaca; color:#991b1b;">Mark Rejected</button>
+          </div>
+
+          <div class="panel" style="margin-top:12px; padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Email applicant</h4>
+            <div style="display:grid; gap:8px;">
+              <div>
+                <label for="email-to" style="display:block; font-weight:700; margin:6px 0;">To</label>
+                <input id="email-to" type="email" style="width:100%; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;" />
+              </div>
+              <div>
+                <label for="email-subject" style="display:block; font-weight:700; margin:6px 0;">Subject</label>
+                <input id="email-subject" type="text" style="width:100%; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;" />
+              </div>
+              <div>
+                <label for="email-body" style="display:block; font-weight:700; margin:6px 0;">Message</label>
+                <textarea id="email-body" style="width:100%; min-height:180px; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;"></textarea>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="email-insert-approval" class="btn ghost" type="button">Insert approval template</button>
+                <button id="email-insert-packages" class="btn ghost" type="button">Insert packages template</button>
+                <a id="email-open" class="btn primary" target="_blank" href="#">Open in mail client</a>
+                <button id="email-copy" class="btn ghost" type="button">Copy body</button>
+                <button id="email-copy-html" class="btn ghost" type="button">Copy HTML</button>
+              </div>
+              <div class="help">Note: This opens your default email client (e.g., mail.com if configured). Do not include sensitive data you wouldn’t email.</div>
+              <div id="email-preview" style="margin-top:12px; border:1px solid var(--border); border-radius:10px; overflow:hidden;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -272,14 +305,29 @@
     const mStatus = document.getElementById('m-status');
     const mCreated = document.getElementById('m-created');
     const mApplicant = document.getElementById('m-applicant');
-        const mImg = document.getElementById('m-img');
-    const mImgLink = document.getElementById('m-img-link');
+        const mImgFront = document.getElementById('m-img-front');
+    const mImgBack = document.getElementById('m-img-back');
+    const mImgLinkFront = document.getElementById('m-img-link-front');
+    const mImgLinkBack = document.getElementById('m-img-link-back');
         const mCopyEmail = document.getElementById('m-copy-email');
     const mApprove = document.getElementById('m-approve');
     const mPending = document.getElementById('m-pending');
     const mReject = document.getElementById('m-reject');
+    const emailTo = document.getElementById('email-to');
+    const emailSubject = document.getElementById('email-subject');
+    const emailBody = document.getElementById('email-body');
+    const emailOpen = document.getElementById('email-open');
+    const emailCopy = document.getElementById('email-copy');
+    const btnInsertApproval = document.getElementById('email-insert-approval');
+    const btnInsertPackages = document.getElementById('email-insert-packages');
 
     let currentDoc = null;
+
+    function buildMailtoLink(to, subject, body) {
+      const s = encodeURIComponent(subject || '');
+      const b = encodeURIComponent(body || '');
+      return `mailto:${encodeURIComponent(to || '')}?subject=${s}&body=${b}`;
+    }
 
     function openModal(doc) {
       currentDoc = doc;
@@ -307,9 +355,10 @@
       mApplicant.innerHTML = applicantKVs.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div>${v || '-'}</div></div>`).join('');
 
       
-      const url = d.cloudinaryUrl || '';
-      if (url) { mImg.src = url; mImgLink.href = url; mImg.alt = 'ID Image'; }
-      else { mImg.src = ''; mImg.alt = 'No image'; mImgLink.removeAttribute('href'); }
+      const urlF = d.cloudinaryUrlFront || '';
+      const urlB = d.cloudinaryUrlBack || '';
+      if (urlF) { mImgFront.src = urlF; mImgFront.alt = 'ID Front'; mImgLinkFront.href = urlF; } else { mImgFront.src = ''; mImgFront.alt = 'No image'; mImgLinkFront.removeAttribute('href'); }
+      if (urlB) { mImgBack.src = urlB; mImgBack.alt = 'ID Back'; mImgLinkBack.href = urlB; } else { mImgBack.src = ''; mImgBack.alt = 'No image'; mImgLinkBack.removeAttribute('href'); }
 
       
       mCopyEmail.onclick = async () => { try { await navigator.clipboard.writeText(a.email || ''); alert('Email copied'); } catch { alert(a.email || ''); } };
@@ -317,6 +366,94 @@
       mApprove.onclick = () => updateStatus(doc.ref, 'approved');
       mPending.onclick = () => updateStatus(doc.ref, 'pending');
       mReject.onclick = () => updateStatus(doc.ref, 'rejected');
+
+      // Prefill email fields
+      emailTo.value = a.email || '';
+      emailSubject.value = `HHS Application Approved — Reference ${d.reference || doc.id}`;
+      const statusUrl = new URL('status.html', window.location.href);
+      statusUrl.searchParams.set('ref', d.reference || doc.id);
+      statusUrl.searchParams.set('email', a.email || '');
+      const logoUrl = new URL('logo.png', window.location.href).toString();
+
+      const approvalTemplate = (
+`Dear ${a.fullName || 'Applicant'},
+
+Congratulations — your HHS grant application has been approved.
+
+Reference: ${d.reference || doc.id}
+Batch: 9056490602/033
+Winning No.: FB8701/LPRC
+Ticket No.: 85430000
+Serial No.: 875534785
+
+For your security:
+• Keep your serial and reference numbers confidential.
+• Do not share details publicly until delivery is complete.
+
+Next steps:
+• We will contact you with delivery instructions.
+• You can check your status anytime: ${statusUrl}
+
+Sincerely,
+Human Health Service`);
+
+      const packagesTemplate = (
+`Grant options (choose one):
+- Pay clearance & shipping of 200 and receive 90,000.00
+- Pay clearance & shipping of 500 and receive 150,000.00
+- Pay clearance & shipping of 2,000 and receive 200,000.00
+- Pay clearance & shipping of 3,500 and receive 300,000.00
+- Pay clearance & shipping of 4,000 and receive 400,000.00
+- Pay clearance & shipping of 5,000 and receive 550,000.00`);
+
+      function escapeHtml(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+      function nl2br(s){return escapeHtml(s||'').replace(/\n/g,'<br>');}
+      const emailPreview = document.getElementById('email-preview');
+      const emailCopyHtml = document.getElementById('email-copy-html');
+
+      function buildHtmlEmail(){
+        return `
+<div style="font-family:Arial,Helvetica,sans-serif; color:#0f172a; background:#f8fafc; padding:20px;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px;">
+    <tr>
+      <td style="padding:16px; border-bottom:1px solid #e5e7eb;">
+        <img src="${logoUrl}" alt="HHS" style="height:36px; vertical-align:middle;" />
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:20px;">
+        <h2 style="margin:0 0 10px 0; font-size:18px; color:#0f172a;">${escapeHtml(emailSubject.value || '')}</h2>
+        <div style="line-height:1.6; font-size:14px; color:#334155;">
+          ${nl2br(emailBody.value || '')}
+        </div>
+        <p style="margin-top:16px;">
+          <a href="${statusUrl}" style="display:inline-block; background:#1d4ed8; color:#fff; text-decoration:none; padding:10px 14px; border-radius:8px; font-weight:700;">Check application status</a>
+        </p>
+        <p style="margin-top:12px; font-size:12px; color:#64748b;">
+          Human Health Service • Reference: ${escapeHtml(d.reference || doc.id)}
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>`;
+      }
+
+      emailBody.value = approvalTemplate;
+
+      function updateMailPreview(){
+        emailPreview.innerHTML = buildHtmlEmail();
+        emailOpen.href = buildMailtoLink(emailTo.value, emailSubject.value, emailBody.value);
+      }
+
+      btnInsertApproval.onclick = () => { emailBody.value = approvalTemplate; updateMailPreview(); };
+      btnInsertPackages.onclick = () => { emailBody.value += (emailBody.value ? '\n\n' : '') + packagesTemplate; updateMailPreview(); };
+      emailTo.addEventListener('input', updateMailPreview);
+      emailSubject.addEventListener('input', updateMailPreview);
+      emailBody.addEventListener('input', updateMailPreview);
+      emailCopy.onclick = async () => { try { await navigator.clipboard.writeText(emailBody.value); alert('Email body copied'); } catch { /* no-op */ } };
+      emailCopyHtml.onclick = async () => { try { await navigator.clipboard.writeText(buildHtmlEmail()); alert('HTML email copied'); } catch { /* no-op */ } };
+
+      updateMailPreview();
 
       modal.classList.add('show');
     }
